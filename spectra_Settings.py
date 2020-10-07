@@ -33,7 +33,7 @@ parameters = {
     #Either 'n-g' or 'n-tot'. It is the default mode for sample importing.
     'default_smode' :   'n-g',
 
-    #L0 lengths (m)
+    #L0 lengths (m). L0_g and L0_t provide different 
     'L0_g'          :   22.804,
     'L0_t'          :   23.404,#22.884,
 
@@ -55,18 +55,21 @@ parameters = {
     #Exceptions in Minimum XS (b):
     #Make sure to enter the element symbol between single quotes, colon and its own crs_min,
     #followed by a comma.
+    #If different values for XS in the n-tot and n-g modes are to be provided, it is possible to do so
+    #by means of a tuple (XS(n-tot), XS(n-g).
+   
+   ##e.g.
+   #'crs_exc'       :   {
+   #'Fe'    : (20, 5),
+   #'Sn'    : 70.4,
+   #'Cu'    : 55,
+   #},
+   
     'crs_exc'       :   {
     'Cu'    :   (20, 5),
     'Fe'    :   (20, 5),
 
     },
-
-   ##e.g.
-   #'crs_exc'       :   {
-   #'Fe'    : 60,
-   #'Sn'    : 70,
-   #'Cu'    : 55,
-   #},
 
     # ================================================================================================
     # SECTION 4: COMPUTATIONAL PARAMETERS
