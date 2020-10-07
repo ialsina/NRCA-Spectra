@@ -118,7 +118,7 @@ def Plotter(data,tit='',showlim=0,showma=0,tof=False,axlabsin=False,peaklabs=Fal
 
 
 def Plot(self,same=True):
-    """This is an instance of Catalog.
+    """This is a method of Catalog.
     Asks what elements are to be shown together and plots them together.
     inputs:
         self: Category instance.
@@ -149,7 +149,7 @@ def Plot(self,same=True):
 
 
 def plotone(self,num,side=None,title=None,prplot=cf.prplot,ax=None):
-    """Function called by a method member of Data.
+    """This is a method of Data.
     Plots a single peak:
     inputs:
         - self: Data instance
@@ -163,6 +163,13 @@ def plotone(self,num,side=None,title=None,prplot=cf.prplot,ax=None):
             number of mesh points each side of the peak to plot
         - ax: plt axes instance or None
             if given, plots in that axes. If None, plots in plt.gca()"""
+    
+    color_dict = {
+            1: 'black',
+            2: 'blue',
+            3: 'green',
+            }
+    
     ax = ax or plt.gca()
     if not self.peaks[num].xlims is None:
         indx = basic.GetIndex(self.spectrum[0],self.peaks[num].xlims)
@@ -177,8 +184,8 @@ def plotone(self,num,side=None,title=None,prplot=cf.prplot,ax=None):
     ax.set_xscale('linear')
     ax.set_yscale('linear')
     if not self.peaks[num].xlims is None:
-        for edge in self.peaks[num].xlims:
-            ax.axvline(x=edge,color='black',lw=0.5)
+        for edge, reason in zip(self.peaks[num].xlims, self.peaks[num].peakreason):
+            ax.axvline(x=edge,color=color_dict[reason],lw=0.5)
     else:
         ax.axvline(x=self.ma[0,num],color='red',lw=0.5)
     plt.text(.95,.5,'{}-{}'.format(self.peaks[num].peakreason[0],self.peaks[num].peakreason[1]),fontsize=8,ha='right',va='center',transform=ax.transAxes)
@@ -187,7 +194,7 @@ def plotone(self,num,side=None,title=None,prplot=cf.prplot,ax=None):
     return ax
 
 def plotpeaks(self,save=False,showlim=1,showma=1,peaklabs=True,**kwargs):
-    """Function called by a method member of Data.
+    """This is a method of Data.
     Plots all the peaks in the Data instance in a fancy 4-column way.
     inputs:
         - self: Data instance
@@ -195,8 +202,10 @@ def plotpeaks(self,save=False,showlim=1,showma=1,peaklabs=True,**kwargs):
             True: saves the dataplot
             False: shows the dataplot
         - the rest of the inputs are the ones documented in Plotter"""
-    nrows = int((len(self.mai)-9)/4)+4 if len(self.mai) > 8 else (2 if len(self.mai) in [0,1,2,4] else 3)
-    ncols = 4 if len(self.mai) > 5 or len(self.mai) == 4 else (2 if len(self.mai) == 0 else 3)
+    
+    npeaks = len(self.mai)
+    nrows = int((npeaks-9)/4)+4 if npeaks > 8 else (2 if npeaks in [0,1,2,4] else 3)
+    ncols = 4 if npeaks >=4 else (2 if npeaks == 0 else 3)
     
     fig,axes = plt.subplots(nrows=nrows,ncols=ncols,figsize=(4*ncols,3*nrows))
     gs = axes[1, 2].get_gridspec()
@@ -205,13 +214,28 @@ def plotpeaks(self,save=False,showlim=1,showma=1,peaklabs=True,**kwargs):
     axes = axes.flatten()
     if ncols==3: axes = np.delete(axes,[0,1,3,4])
     if ncols==4: axes = np.delete(axes,[0,1,4,5])
-    if len(self.mai) > 8:
-        for ax in axes[len(self.mai):ncols*nrows]: ax.remove()
-    for i in range(len(self.mai)):
+    
+    if npeaks in [1,7]:
+        axes[-1].remove()
+        axes = np.delete(axes, [-1])
+    
+    elif npeaks in [3,6]:
+        axes[-1].remove()
+        axes[-2].remove()
+        axes = np.delete(axes, [-2, -1])
+        
+    if npeaks > 8:
+        for ax in axes[npeaks:ncols*nrows]: ax.remove()
+    for i in range(npeaks):
         plotone(self,i,side=str(i),ax=axes[i])
+    
     axbig = fig.add_subplot(gs[0:2,0:2],xscale='log',yscale='log')
+
     Plotter(self,self.fullname,showlim=1,showma=1,peaklabs=peaklabs,axlabsin=True,ax=axbig)
-    fig.tight_layout()
+    
+    if npeaks > 8: fig.tight_layout()
+    
+    return fig, axes
 
     if not save: plt.show()
     if save: plt.savefig(os.path.join(os.getcwd(),'output','Peaks_'+self.fullname+'.png'))

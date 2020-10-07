@@ -6,11 +6,14 @@ Created on Wed Oct  7 11:48:50 2020
 @author: ivan
 """
 
-from spectra_Basics import *
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy.integrate as spint
+
+import spectra_Basics as basic
+import spectra_Plotters as plotter
+import spectra_Finders as finder
 from spectra_InitSettings import cf, peakattr, err
-from spectra_Plotters import *
-from spectra_Finders import *
-from spectra_ObjectsFunc import *
 
 def definepeak(self,npeak,prange,params):
     """Given an Data instance, defines the npeak-th peak in x position.
@@ -59,7 +62,7 @@ def definepeak(self,npeak,prange,params):
         center = self.mai[npeak]
         redder = self.sder[center-prange:center+prange+1]
         for i in range(1,10):
-            fit,boxwidth = FitBoxes(redder,params['dboxes']*i)
+            fit,boxwidth = basic.FitBoxes(redder,params['dboxes']*i)
             temp1,temp2 = np.unique(fit,return_counts=True)
             if not (temp2==1).all(): break
         outerslope = temp1[np.argmax(temp2)]
@@ -129,8 +132,8 @@ def Fwhm(array,ic,coords,ilims):
             FWHM. Zero in case of miscalculation."""
     yhm = coords[1]/2
     i0,i1 = ilims[0],ilims[1]
-    iredhm1 = InBetween(array[1,i0:ic],yhm,True)[0]
-    iredhm2 = InBetween(array[1,ic:i1+1],yhm,True)[1]
+    iredhm1 = basic.InBetween(array[1,i0:ic],yhm,True)[0]
+    iredhm2 = basic.InBetween(array[1,ic:i1+1],yhm,True)[1]
     xhm1 = array[0,iredhm1+i0] if not iredhm1 is None else None
     xhm2 = array[0,iredhm2+ic] if not iredhm2 is None else None
     return xhm2 - xhm1 if (( not xhm1 is None ) and (not xhm2 is None)) else 0
@@ -146,12 +149,15 @@ def computepeak(self,peakpos,prange,params,setx=None):
         - setx: tuple with the peak boundaries. Used for the peak editing tool.
     outputs:
         - Peak instance."""
+        
+    from spectra_Objects import Peak
+    
     try:
         center = self.ma[0,peakpos]
         coords = tuple(self.ma[:,peakpos])
-        coords_tof = tuple((E2t(coords[0]), coords[1]))
+        coords_tof = tuple((basic.E2t(coords[0]), coords[1]))
         icenter= self.mai[peakpos]
-        center_tof = E2t(center,self.mode)
+        center_tof = basic.E2t(center,self.mode)
 
         # If setx is None, we are computing. Otherwise, we com from the editing function.
         if setx is None:
@@ -159,7 +165,7 @@ def computepeak(self,peakpos,prange,params,setx=None):
             user_edited = False
         else:
             xlims = tuple(setx)
-            ilims = tuple(GetIndex(self.spectrum[0], setx))
+            ilims = tuple(basic.GetIndex(self.spectrum[0], setx))
             outerslope = (0., 0.)
             peakreason = (3, 3)
             user_edited = True
@@ -226,10 +232,10 @@ def maxima(arr,xbounds=None,ybounds=None,smoothing=0):
         - cmaxima: array (horizontal) with the x-y values of the maxima
         - imaxima: array 1-d with the peak indices of the maxima"""
 
-    arr = Smooth(arr,smoothing)
+    arr = basic.Smooth(arr,smoothing)
 
     # First we look for maxima candidates
-    imax = IndMaxima(arr[1,:])
+    imax = basic.IndMaxima(arr[1,:])
     cmaxima = arr[:,imax]
 
     #Array of booleans. Do the peaks in cmaxima accomplish the condition for x and y?
@@ -238,18 +244,18 @@ def maxima(arr,xbounds=None,ybounds=None,smoothing=0):
 
     # We peak the ones that do from the maxima candidates array.
     cmaxima = cmaxima[:,np.nonzero(condx*condy)[0]]
-    imaxima = GetIndex(arr[0],cmaxima[0],False)
+    imaxima = basic.GetIndex(arr[0],cmaxima[0],False)
     return cmaxima,imaxima
 
 def minima(arr,xbounds=None,ybounds=None,smoothing=0):
     """Looks for local minima in the array, restricted to the boudns set.
     Exactly the same as maxima(). Look for that documentation."""
-    imin = IndMaxima(arr[1,:], -1)
+    imin = basic.IndMaxima(arr[1,:], -1)
     cminima = arr[:,imin]
     condx = np.array(cminima[0]>=xbounds[0]) * np.array(cminima[0]<=xbounds[1]) if not xbounds is None else np.ones(np.shape(cminima)[1])
     condy = cminima[1]<=ybounds if not ybounds is None else np.ones(np.shape(cminima)[1])
     cminima = cminima[:,np.nonzero(condx*condy)[0]]
-    iminima = GetIndex(arr[0],cminima[0],False)
+    iminima = basic.GetIndex(arr[0],cminima[0],False)
     return cminima,iminima
 
 def propsisot(self,params,setx=dict()):
@@ -330,7 +336,7 @@ def sampprocess(self):
         for i in range(np.shape(self.spectrum_tof)[1]):
             if self.der[i] < 0: break
         processed = self.spectrum_tof[:,i:]
-        processed = Smooth(processed, 1)[:,1:]
+        processed = basic.Smooth(processed, 1)[:,1:]
         
         #Get minima
         self.mi_tof, self.mii_tof = minima(processed)
@@ -341,7 +347,7 @@ def sampprocess(self):
             for i in range(np.shape(processed)[1]):
                 processed = np.copy(self.stripped)
                 _, tempmii = minima(processed)
-                iends = InBetween(tempmii, i, False)
+                iends = basic.InBetween(tempmii, i, False)
                 if iends[0] == 0: continue
                 if iends[0] == iends[1]: continue
                 if iends[0] is None or iends[1] is None: continue
@@ -351,7 +357,7 @@ def sampprocess(self):
                 B = (y0*x1-y1*x0)/(x1-x0)
                 self.stripped[1,i] = A*processed[0,i] + B
 
-        self.stripped = Smooth(self.stripped, 1)[:,1:]
+        self.stripped = basic.Smooth(self.stripped, 1)[:,1:]
 
         #Coefficients of the chosen degree in the settings file. Biggest order first.
         #i.e. [A, B, C, D] means A*x**3+B*x**2+C*x+D
@@ -377,9 +383,9 @@ def RankNearest(Dict,xx):
 
 def MatchPeaks(self,distmax=cf.max_match,samp=None):
     try:
-        if not samp: samp = self.get(Select(self.get_as_dict(isotopes=False, elements=False, compounds=False), recursive=False, ask_if_one=False))
+        if not samp: samp = self.get(finder.Select(self.get_as_dict(isotopes=False, elements=False, compounds=False), recursive=False, ask_if_one=False))
 
-        PlotBars(samp,dict())
+        plotter.PlotBars(samp,dict())
 
         while True:
             ind = AskPeak(np.size(samp.ma_tof[0]))
@@ -407,9 +413,10 @@ def AskPeak(firstno):
 
 
 def ComparePeaks(self):
+    from spectra_Objects import Summer
     try:
         samp, Dict = self.smart_select()
-        PlotBars(samp,Dict)
+        plotter.PlotBars(samp,Dict)
         intratios = Summer()
         while True:
             ind = AskPeak(np.size(samp.ma_tof[0]))
@@ -427,7 +434,7 @@ def ComparePeaks(self):
                 continue
             xx = samp.ma_tof[0,ind]
             closest_isot = RankNearest(Dict, xx)
-            newlims = (Closest(samp.spectrum_tof[0], newlims_[0], True), Closest(samp.spectrum_tof[0], newlims_[1], True))
+            newlims = (basic.Closest(samp.spectrum_tof[0], newlims_[0], True), basic.Closest(samp.spectrum_tof[0], newlims_[1], True))
             print('\tPeak center: {}. Peak newlims: {}'.format(xx, newlims))
             integral = Integrate(samp.spectrum_tof, newlims) - Integrate(samp.stripped, newlims)
             print('\tClosest component peaks:')
@@ -486,7 +493,7 @@ def EditPeaks(self):
             except:
                 print('Invalid input')
                 continue
-            newlims = (Closest(self.spectrum[0], newlims_[0], False), Closest(self.spectrum[0], newlims_[1], False))
+            newlims = (basic.Closest(self.spectrum[0], newlims_[0], False), basic.Closest(self.spectrum[0], newlims_[1], False))
             print('\tNew peak boundaries: {}'.format(newlims))
             plt.axvline(x=newlims[0], color='green')
             plt.axvline(x=newlims[1], color='green')

@@ -9,7 +9,7 @@ import numpy as np
 import scipy.integrate as spint
 import matplotlib.pyplot as plt
 
-import spectra_Basics as basics
+import spectra_Basics as basic
 import spectra_Plotters as plotter
 import spectra_Finders as finder
 import spectra_ObjectsFunc as func
@@ -19,8 +19,8 @@ from spectra_InitSettings import cf, peakattr, err
 class Catalog:
 
     def __init__(self,**kwargs):
+        self.volumes = basic.catalog_volumes
         self.loadfiles()
-        self.volumes = basics.catalog_volumes
         self.date_created = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
     def _format(self, **kwargs):
@@ -233,15 +233,15 @@ class Substance:
 
     def arr_t2E(self, arr):
         if np.shape(arr)[0] < 2:
-            return basics.t2E(arr, self.mode)
+            return basic.t2E(arr, self.mode)
         else:
-            return np.vstack((basics.t2E(arr[0], self.mode), arr[1:]))
+            return np.vstack((basic.t2E(arr[0], self.mode), arr[1:]))
 
     def arr_E2t(self, arr):
         if np.shape(arr)[0] < 2:
-            return basics.E2t(arr, self.mode)
+            return basic.E2t(arr, self.mode)
         else:
-            return np.vstack((basics.E2t(arr[0], self.mode), arr[1:]))
+            return np.vstack((basic.E2t(arr[0], self.mode), arr[1:]))
 
     def arr_dt2dE(self):
         pass
@@ -250,7 +250,7 @@ class Substance:
 
 class Data(Substance):
     def __init__(self,namestr,array,peaksdict=None):
-        self.atom, self.symb, self.mass, self.mode = basics.InterpretName(namestr)
+        self.atom, self.symb, self.mass, self.mode = basic.InterpretName(namestr)
         self.intof = False
         self.xbounds = cf.xbounds()
         self.ybounds = cf.ybounds(self.symb, self.mode)
