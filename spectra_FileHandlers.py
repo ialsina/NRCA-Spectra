@@ -1,7 +1,15 @@
-from spectra_Basics import *
-from spectra_Mixer import *
+import os
+import sys
+from tqdm import tqdm
+from datetime import datetime
+import time
+import shutil
+import numpy as np
+
+import spectra_Basics as basics
+import spectra_Finders as finder
+import spectra_Mixer as mixer
 from spectra_InitSettings import cf, peakattr, err
-from spectra_Finders import *
 
 #Notice: some of the functions presented in this file are actually methods of classes presented in spectra_Objects.
 
@@ -60,7 +68,7 @@ def ImportFile(file, check=False):
 
         # Perform the checking, if asked to
         if check and not 'element' in file and not 'compound' in file:
-            wanted_list = InterpretName(file.split('/')[-1].split('.')[0])
+            wanted_list = basics.InterpretName(file.split('/')[-1].split('.')[0])
             wanted_isotope = wanted_list[1] + '-' + wanted_list[2]
             wanted_mode = wanted_list[3]
             actual_isotope = lines[0].split(' ')[0].replace(')','').split('(')[0]
@@ -206,7 +214,7 @@ def ImportData(directory=None):
     isotdict = dict()
     elemdict = dict()
     compdict = dict()
-    if isf('peakprops'):
+    if basics.isf('peakprops'):
         inp = input('Import peak properties from file? ([y]/n) >')
         if inp in ['q','quit']:
             return dict(),dict(),dict()
@@ -275,11 +283,11 @@ def ImportSamp(directory=None):
     from spectra_Objects import Sample
 
     sampdict = dict()
-    if not isd('samples_n-tot'):
+    if not basics.isd('samples_n-tot'):
         print('samples_n-tot folder does not exist!')
         return dict()
 
-    if not isd('samples_n-g'):
+    if not basics.isd('samples_n-g'):
         print('samples_n-g folder does not exist!')
         return dict()
 
@@ -338,7 +346,7 @@ def LoadPeaks():
     from spectra_Objects import Peak
 
     peaks = dict()
-    if not isf('peakprops'):
+    if not basics.isf('peakprops'):
         print('peakprops.txt must exist')
         return None
     with open('peakprops.txt','r') as iFile:
@@ -370,10 +378,10 @@ def LoadPeaks():
 
 def CreateEmptyFiles():
     """Creates all the empty files to be filled from Kaeri (for example) after the file 'Isotopes.txt'"""
-    if isf('Isotopes'):
+    if basics.isf('Isotopes'):
         try:
-            if isd('EmptyFiles'): shutil.rmtree(path+'/EmptyFiles')
-            os.mkdir(path+'/EmptyFiles')
+            if basics.isd('EmptyFiles'): shutil.rmtree(basics.path+'/EmptyFiles')
+            os.mkdir(basics.path+'/EmptyFiles')
         except Exception as e:
             print('Error in output file creation:',e)
             sys.exit()
@@ -383,20 +391,19 @@ def CreateEmptyFiles():
                 line = line.replace('\n','')
                 print(line)
                 for suff in ['_n-tot','_n-g']:
-                    f = open(path+'/EmptyFiles/'+line+suff+'.txt','w')
+                    f = open(basics.path+'/EmptyFiles/'+line+suff+'.txt','w')
                     f.close()
     else:
         print('There must be an Isotopes file')
 
 
-def MixOut(container_in):
+def MixOut(Dict, container_in):
     """Creates the empty Natural_out.txt file and Compound_out.txt file for the user to fill.
     inputs:
         - container_in: tuple
             tuple of isots, ielems, elems, and non_unique used for the listing."""
     instructions = """Instructions:
 # Insert desired abundance of isotopes after the colon (:). Spaces will be ignored.
-# A single colon (;) in a line indicates separation between compounds.
 # A colon (:) with a character string on its left must be used to name the element/compound.
 # Allowed punctuation signs and symbols for the name are .,-+_!?[]()%&/ but nothing else.
 # It is possible to mix and join different isotopes and/or elements together.
@@ -408,14 +415,14 @@ def MixOut(container_in):
 # Change the file name to 'Compound_in.txt' and load from program
 # The file must end with a double colon (::)\n"""
     
-    isots, ielems, elems, non_unique = container_in
+    isots, ielems, elems, non_unique, comps = container_in
 
     with open('Natural_out.txt','w') as oFile:
         oFile.write('# NATURAL ABUNDANCES'+'\n'+instructions)
         oFile.write('#'*70+'\n\n')
         for elem in ielems:
             oFile.write('\n:'+elem+'\n')
-            for res in sorted(Seek((elem,'n-tot'))):
+            for res in sorted(finder.Seek(Dict, (elem,'n-tot'))):
                 isot = res.split('_')[0]
                 if elem in non_unique:
                     oFile.write(isot+':\n')
@@ -433,27 +440,27 @@ def MixOut(container_in):
         oFile.write('\n##Example:\n#:MyCompound1\n#22-Ti:50\n#29-Cu:49.2\n#24-Cr:.8\n')
         oFile.write('\n##Example:\n#:special_steel\n#6-C:.25\n#26-Fe-56:.75*.85\n#26-Fe-54:.75*.10\n#26-Fe-57:.75*.05\n')
         oFile.write('\n#Isotopes:\n')
-        for isotope in sorted(list(np.unique([el.split('_')[0] for el in isots]))):
-            oFile.write(isotope+'\n')
+        for item in sorted(list(np.unique([el.split('_')[0] for el in isots]))):
+            oFile.write(item+'\n')
         oFile.write('\n#Elements:\n')
-        for isotope in sorted(list(np.unique([el.split('_')[0] for el in elems]))):
-            oFile.write(isotope+'\n')
+        for item in sorted(list(np.unique([el.split('_')[0] for el in elems]))):
+            oFile.write(item+'\n')
         oFile.write('\n#Compounds:\n')
-        for isotope in sorted(list(np.unique(list(Compounds.keys())))):
-            oFile.write(isotope+'\n')
+        for item in sorted(list(np.unique([el.split('_')[0] for el in comps]))):
+            oFile.write(item+'\n')
         oFile.write('\n#New compounds: (build below)\n')
         oFile.write('\n'*10+'::')
 
     
     print('Compound_out.txt file exported.')
     
-def MixInFile(filename,Dict,permitted,mode=0):
+def MixInFile(filename, Dict, permitted, kind=None):
     """Reads a single file, either Natural_in, or Compounds_in."""
     from spectra_Objects import Isotope, Element, Compound
     dictout = dict()
     dictcomp = dict()
     
-    if not isf(filename):
+    if not basics.isf(filename):
         print('File does not exist')
         return dict()
     else:
@@ -465,9 +472,10 @@ def MixInFile(filename,Dict,permitted,mode=0):
     mix = np.empty((0))
     skip = False
 
-    #Lambda functions that will help us take decisions on who to call.
-    CorE = lambda: Compound if mode==2 else Element
-    sCorE = lambda: 'compound(s)' if mode==2 else 'element(s)'
+    #Objects assigned depending on who are we running the function for
+    assert kind in ['compound', 'element'], "Bad value for the 'kind' argument"
+    obj = Compound if kind=='compound' else Element
+
     with open(filename,'r') as iFile:
         for line in iFile.readlines():
             if line[0] in ["#",">"]: continue
@@ -514,13 +522,13 @@ def MixInFile(filename,Dict,permitted,mode=0):
         for suff in ['_n-tot','_n-g']:
             #Compute weighted outcome for every mode
             print('Computing:', mix, suff)
-            dictout[mix+suff] = CorE()(mix+suff,GetWeighted(Dict,mix,suff,dictcomp[mix]),dictcomp[mix],peaksdict=None)
+            dictout[mix+suff] = obj(mix+suff,mixer.GetWeighted(Dict,mix,suff,dictcomp[mix]),dictcomp[mix],peaksdict=None)
             ExportWeighted(dictout[mix+suff])
             count+=1
     
     os.rename(filename,filename.split('_')[0]+'_through.txt')
     print(filename, 'file imported.')
-    print(count,sCorE(),'computed and exported.')
+    print(count, kind+'(s) computed and exported.')
     
     return dictout
 
@@ -528,8 +536,8 @@ def MixIn(Dict,permitted):
     """Makes the function MixInFile work for Elements and Compounds.
     If the respective files are there and ready, it returns a dictionary with them all computed.
     If not, it returns an empty dictionary."""
-    dictelements = MixInFile('Natural_in',Dict,permitted,1) if isf('Natural_in') else dict()
-    dictcompounds = MixInFile('Compound_in',Dict,permitted,2) if isf('Compound_in') else dict()
+    dictelements = MixInFile('Natural_in',Dict,permitted, 'element') if basics.isf('Natural_in') else dict()
+    dictcompounds = MixInFile('Compound_in',Dict,permitted, 'compound') if basics.isf('Compound_in') else dict()
     return dictelements, dictcompounds
 
 def ExportWeighted(*args,directory=None):
@@ -569,7 +577,7 @@ def infoone(isot):
                             '*' if line.integral == 0 else '',\
                             line.center,\
                             '('+str(line.center_)+')',\
-                            E2t(line.center,isot.mode),\
+                            basics.E2t(line.center,isot.mode),\
                             line.integral,\
                             line.width,\
                             '('+str(line.width_)+')',\
@@ -603,8 +611,8 @@ def ExportProps(Dict):
 
 def BackName():
     """Renames everything with _through in its name back to _in"""
-    if isf('Natural_through'): os.rename('Natural_through.txt','Natural_in.txt')
-    if isf('Compounds_through'): os.rename('Compounds_through.txt','Compounds_in.txt')
+    if basics.isf('Natural_through'): os.rename('Natural_through.txt','Natural_in.txt')
+    if basics.isf('Compounds_through'): os.rename('Compounds_through.txt','Compounds_in.txt')
 
             
             

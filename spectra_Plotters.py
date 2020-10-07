@@ -17,10 +17,8 @@ import numpy as np
 import scipy.integrate as spint
 import matplotlib.pyplot as plt
 
-from spectra_Basics import *
-#from spectra_Settings import *
-from spectra_Objects import *
-from spectra_Finders import *
+import spectra_Basics as basic
+import spectra_Finders as finder
 from spectra_InitSettings import cf
 
 
@@ -71,8 +69,8 @@ def Plotter(data,tit='',showlim=0,showma=0,tof=False,axlabsin=False,peaklabs=Fal
 
     def units(arr,intof,mode):
         if tof^intof:
-            if tof: return E2t(arr,mode)
-            if not tof: return t2E(arr,mode)
+            if tof: return basic.E2t(arr,mode)
+            if not tof: return basic.t2E(arr,mode)
         else:
             return arr
 
@@ -129,11 +127,11 @@ def Plot(self,same=True):
             False: an independent figure will be opened for each item.
     """
     Dict = self.Substances()
-    querylist = Select(self.get_as_dict(),recursive=True)
+    querylist = finder.Select(self.get_as_dict(),recursive=True)
     if querylist == []: return None
     querydict = dict()
-    tof = not AskAxis()
-    maxs = int(AskLim())
+    tof = not basic.AskAxis()
+    maxs = int(basic.AskLim())
         
     for queryel in querylist:
         if queryel in Dict: querydict[queryel] = Dict[queryel]
@@ -167,7 +165,7 @@ def plotone(self,num,side=None,title=None,prplot=cf.prplot,ax=None):
             if given, plots in that axes. If None, plots in plt.gca()"""
     ax = ax or plt.gca()
     if not self.peaks[num].xlims is None:
-        indx = GetIndex(self.spectrum[0],self.peaks[num].xlims)
+        indx = basic.GetIndex(self.spectrum[0],self.peaks[num].xlims)
         x0 = indx[0] - prplot
         x1 = indx[1] + prplot +1
     else:
@@ -182,7 +180,7 @@ def plotone(self,num,side=None,title=None,prplot=cf.prplot,ax=None):
         for edge in self.peaks[num].xlims:
             ax.axvline(x=edge,color='black',lw=0.5)
     else:
-        ax.axvline(x=ma[0,num],color='red',lw=0.5)
+        ax.axvline(x=self.ma[0,num],color='red',lw=0.5)
     plt.text(.95,.5,'{}-{}'.format(self.peaks[num].peakreason[0],self.peaks[num].peakreason[1]),fontsize=8,ha='right',va='center',transform=ax.transAxes)
     #ax.set_xlabel('Energy (eV)')
     #ax.set_ylabel('Cross section (b)')

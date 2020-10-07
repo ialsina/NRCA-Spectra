@@ -9,19 +9,18 @@ import numpy as np
 import scipy.integrate as spint
 import matplotlib.pyplot as plt
 
-from spectra_Basics import *
+import spectra_Basics as basics
+import spectra_Plotters as plotter
+import spectra_Finders as finder
+import spectra_ObjectsFunc as func
 from spectra_InitSettings import cf, peakattr, err
-from spectra_Plotters import *
-from spectra_Finders import *
-from spectra_ObjectsFunc import *
-#from spectra_FileHandlers import *
 
 
 class Catalog:
-    volumes = ('isotopes','elements','compounds','samples')
 
     def __init__(self,**kwargs):
         self.loadfiles()
+        self.volumes = basics.catalog_volumes
         self.date_created = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
     def _format(self, **kwargs):
@@ -29,7 +28,7 @@ class Catalog:
             setattr(self, volume, kwargs.get(volume,dict()))
 
     def replace(self,**kwargs):
-        for volume in volumes:
+        for volume in self.volumes:
             setattr(self, volume, kwargs.get(volume,self.volume))
 
     def update(self,**kwargs):
@@ -74,28 +73,42 @@ class Catalog:
     def get_as_dict(self,**kwargs):
         return {volume: getattr(self,volume) if kwargs.get(volume,True)==True else dict() for volume in self.volumes}
 
-    def _unravel(self):
+    def _unravelDatas(self):
+        """Returns:
+            - isots: list of unique isotopes
+            - ielems: list of unique elements built from the list of isotopes
+            - elems: list of unique elements
+            - non_unique: list of ielems that contain more than one isotope
+            - comps: list of compounds
+        Note:
+            The reason to differentiate between ielems and elems is that this enables to build
+            the non_unique list, useful for mixing purposes"""
+        
         spl = lambda a, n: '-'.join([a.split('_')[0].split('-')[i] for i in range(n)])
-        isots = np.unique([spl(isot,3) for isot in self.isotopes],return_counts=False)
-        ielems,nisots = np.unique([spl(isot,2) for isot in self.isotopes],return_counts=True)
+        
+        isots = np.unique([spl(isot,3) for isot in self._discriminate(self.isotopes, cf.default_mode)],return_counts=False)
+        ielems,nisots = np.unique([spl(isot,2) for isot in self._discriminate(self.isotopes, cf.default_mode)],return_counts=True)
         non_unique = ielems[nisots>1]
         elems = np.unique([spl(elem,2) for elem in self.elements],return_counts=False)
-        return list(isots), list(ielems), list(elems), list(non_unique)
+        comps = self.compounds.keys()
+        
+        return list(isots), list(ielems), list(elems), list(non_unique), list(comps)
 
     def get_isotopes(self):
         """Isotopes, without suffix."""
-        return self._unravel()[0]
+        return self._unravelDatas()[0]
 
     def get_elements(self):
         """Elements, without suffix"""
-        return self._unravel()[2]
+        return self._unravelDatas()[2]
 
     def get_elements_from_isotopes(self, non_unique=False):
         """Looking at the isotopes list, list of elements they account for."""
-        return self._unravel()[1] if not non_unique else self._unravel()[3]
+        return self._unravelDatas()[1] if not non_unique else self._unravelDatas()[3]
 
     def get_compounds(self):
-        return list(self.compounds.keys())
+        """Compounds"""
+        return self._unravelDatas()[4]
 
     def get_samples(self):
         return list(self.samples.keys())
@@ -108,7 +121,7 @@ class Catalog:
         return outp
 
     def find(self,askmode=False,ask_if_one=False):
-        return self.Substances().get(Select(self.get_as_dict(),askmode=False,recursive=False,ask_if_one=False))
+        return self.Substances().get(finder.Select(self.get_as_dict(),askmode=False,recursive=False,ask_if_one=False))
 
     def get(self,inp,otherwise=None):
         return self.Substances().get(inp, otherwise)
@@ -134,7 +147,7 @@ class Catalog:
 
     def mix_out(self):
         from spectra_FileHandlers import MixOut
-        MixOut(self._unravel())
+        MixOut(self.Substances(), self._unravelDatas())
 
     def mix_in(self):
         from spectra_FileHandlers import MixIn
@@ -144,9 +157,9 @@ class Catalog:
     def smart_select(self,samp=None):
         """Makes the user decide one sample and then anything but samples."""
         print('Work on sample:')
-        if not samp: samp = self.get(Select(self.get_as_dict(isotopes=False, elements=False, compounds=False), recursive=False, ask_if_one=False))
+        if not samp: samp = self.get(finder.Select(self.get_as_dict(isotopes=False, elements=False, compounds=False), recursive=False, ask_if_one=False))
         print('Select peaks from:')
-        isotsl = Select(self.get_as_dict(samples=False), recursive=True, restrict=samp.mode)
+        isotsl = finder.Select(self.get_as_dict(samples=False), recursive=True, restrict=samp.mode)
         if isotsl == []: return None
         isots = dict()
         for isot in isotsl:
@@ -155,11 +168,11 @@ class Catalog:
 
     def plotbars(self):
         samp, Dict = self.smart_select()
-        PlotBars(samp,Dict)
+        plotter.PlotBars(samp,Dict)
 
-    plot = Plot
-    pmatch = MatchPeaks
-    pcompare = ComparePeaks
+    plot = plotter.Plot
+    pmatch = func.MatchPeaks
+    pcompare = func.ComparePeaks
 
 class Summer:
     def __init__(self):
@@ -206,38 +219,38 @@ class Substance:
         self.fullname = namestr
         self.npeaks = np.shape(self.ma)[1]
         self.der = np.array([(array[1,i+1]-array[1,i])/(array[0,i+1]-array[0,i]) for i in range(np.shape(array)[1]-1)])
-        i0 = GetIndex(np.int32(self.der<0),0)
+        i0 = func.GetIndex(np.int32(self.der<0),0)
         target = np.hstack((np.ones((i0)),np.zeros((np.size(self.der)-i0))))
         self.der = self.der*(np.int64(np.abs(self.der)<cf.maxleftslope)*target + (1-target))
-        self.sder = Smooth(self.der,cf.itersmooth)
+        self.sder = func.Smooth(self.der,cf.itersmooth)
         self.date_created = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         
     def plot(self,showlim=True,showma=True,tof=None,peaklabs=True):
         if tof is None: tof = self.intof
         plt.figure()
-        Plotter(self,self.fullname,showlim=showlim,showma=showma,tof=tof,peaklabs=peaklabs,axlabsin=False,vlines=None,ax=None)
+        plotter.Plotter(self,self.fullname,showlim=showlim,showma=showma,tof=tof,peaklabs=peaklabs,axlabsin=False,vlines=None,ax=None)
         plt.show()
 
     def arr_t2E(self, arr):
         if np.shape(arr)[0] < 2:
-            return t2E(arr, self.mode)
+            return basics.t2E(arr, self.mode)
         else:
-            return np.vstack((t2E(arr[0], self.mode), arr[1:]))
+            return np.vstack((basics.t2E(arr[0], self.mode), arr[1:]))
 
     def arr_E2t(self, arr):
         if np.shape(arr)[0] < 2:
-            return E2t(arr, self.mode)
+            return basics.E2t(arr, self.mode)
         else:
-            return np.vstack((E2t(arr[0], self.mode), arr[1:]))
+            return np.vstack((basics.E2t(arr[0], self.mode), arr[1:]))
 
     def arr_dt2dE(self):
         pass
 
-    pick = pick
+    pick = func.pick
 
 class Data(Substance):
     def __init__(self,namestr,array,peaksdict=None):
-        self.atom, self.symb, self.mass, self.mode = InterpretName(namestr)
+        self.atom, self.symb, self.mass, self.mode = basics.InterpretName(namestr)
         self.intof = False
         self.xbounds = cf.xbounds()
         self.ybounds = cf.ybounds(self.symb, self.mode)
@@ -245,10 +258,10 @@ class Data(Substance):
         self.spectrum_tof = self.arr_E2t(self.spectrum)
         self.xmagnitude = 'Energy (eV)'
         self.ymagnitude = 'Cross Section (b)'
-        self.ma, self.mai = maxima(array, self.xbounds, self.ybounds, 0)
+        self.ma, self.mai = func.maxima(array, self.xbounds, self.ybounds, 0)
         self.ma_tof = self.arr_E2t(self.ma)
         super().__init__(namestr,array)
-        self.peaks = peaksdict or propsisot(self, cf.pack())
+        self.peaks = peaksdict or func.propsisot(self, cf.pack())
         self._seterrors()
         
     def _seterrors(self):
@@ -266,7 +279,7 @@ class Data(Substance):
     
     def plotsingle(self,num):
         plt.figure()
-        plotone(self,num,title='{} #{}'.format(self.fullname, num))
+        plotter.plotone(self,num,title='{} #{}'.format(self.fullname, num))
         plt.show()
 
     def get_from_peaks(self,attr):
@@ -276,21 +289,21 @@ class Data(Substance):
         malist = self.get_from_peaks('ma_tof') if not in_tof else self.get_from_peaks('ma')
 
     def edit(self):
-        editing = EditPeaks(self)
+        editing = func.EditPeaks(self)
         if editing != dict():
-            self.peaks = propsisot(self, cf.pack(), setx=editing)
+            self.peaks = func.propsisot(self, cf.pack(), setx=editing)
             self._seterrors()
             self.date_edited = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
     def delete(self):
-        deleting = DeletePeaks(self)
+        deleting = func.DeletePeaks(self)
         if deleting != []:
-            self.peaks = sorting({i: self.peaks[i] for i in self.peaks if not i in deleting})
+            self.peaks = func.sorting({i: self.peaks[i] for i in self.peaks if not i in deleting})
             self._seterrors()
             self.date_edited = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
 
-    plotpeaks = plotpeaks
+    plotpeaks = plotter.plotpeaks
 
 
 
@@ -341,10 +354,10 @@ class Sample(Substance):
         self.spectrum = self.arr_t2E(self.spectrum_tof)
         self.xmagnitude = 'ToF (us)'
         self.ymagnitude = 'Counts'
-        self.ma_tof, self.mai_tof = maxima(arrayin, None, None, cf.itersmoothsamp)
+        self.ma_tof, self.mai_tof = func.maxima(arrayin, None, None, cf.itersmoothsamp)
         self.ma = self.arr_t2E(self.ma_tof)
         super().__init__(namestr,arrayin)
-        sampprocess(self)
+        func.sampprocess(self)
 
 class Peak:
     kind = 'peak'
@@ -353,4 +366,4 @@ class Peak:
         for i in range(peakattr.size):
             setattr(self,peakattr.get(i),info[i])
 
-    pick = pick
+    pick = func.pick

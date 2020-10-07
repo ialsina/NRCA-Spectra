@@ -10,13 +10,15 @@ import scipy.integrate as spint
 import matplotlib.pyplot as plt
 
 from spectra_InitSettings import cf,err
-#from spectra_Settings import cf
 
 # HANDY VARIABLES
 path = os.getcwd()
 isd = lambda d: os.path.isdir(os.path.join(path,d))
 isfx= lambda f: os.path.isfile(os.path.join(path,f))
 isf = lambda f: isfx(f+'.txt')
+
+
+catalog_volumes = ('isotopes','elements','compounds','samples')
 
 
 #Take functions defined in a tricky place for them to be used whenever

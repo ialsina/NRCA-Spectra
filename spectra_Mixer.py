@@ -9,16 +9,16 @@ import numpy as np
 import scipy.integrate as spint
 import matplotlib.pyplot as plt
 
-from spectra_Basics import *
+import spectra_Basics as basic
 from spectra_InitSettings import cf, err
 
 def Interpolate(arrayin,value):
     """Function that locates the value between to elements in an array and returns the linear interpolation."""
     arrx = arrayin[0]
     arry = arrayin[1]
-    if value in arrx: return arry[GetIndex(arrx,value)]
-    x0,x1 = InBetween(arrx,value,False)
-    i0,i1 = InBetween(arrx,value,True)
+    if value in arrx: return arry[basic.GetIndex(arrx,value)]
+    x0,x1 = basic.InBetween(arrx,value,False)
+    i0,i1 = basic.InBetween(arrx,value,True)
     coef = (value-x0)/(x1-x0)
     return arry[i1]*coef + arry[i0]*(1-coef)
 
@@ -42,7 +42,7 @@ def GetWeighted(Dict,element,suf,composition):
     #We start it and compute the mathematical union of the individual meshes. But only the bits that fall within startmesh and endmesh
     mesh = np.empty((0))
     for c in composition:
-            mesh = np.union1d(mesh, Dict[c+suf].spectrum[0, InBetween(Dict[c+suf].spectrum[0,:],startmesh,True)[1] :InBetween(Dict[c+suf].spectrum[0,:],endmesh,True)[0] ])
+            mesh = np.union1d(mesh, Dict[c+suf].spectrum[0, basic.InBetween(Dict[c+suf].spectrum[0,:],startmesh,True)[1] : basic.InBetween(Dict[c+suf].spectrum[0,:],endmesh,True)[0] ])
 
     #The y values are computed by interpolating each of the y values in the mesh and stored in the components dictionary.
     for component in composition:

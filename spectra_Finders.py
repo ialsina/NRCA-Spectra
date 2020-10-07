@@ -1,4 +1,5 @@
-from spectra_Basics import *
+import numpy as np
+import spectra_Basics as basics
 from spectra_InitSettings import cf, err
 
 def Query(askmode=cf.ask_mode):
@@ -24,18 +25,23 @@ def Query(askmode=cf.ask_mode):
 
 
 def Seek(Dict, tuplein):
-    """Searches a query from the function Query into a dictionary.
+    """Searches a query (from the function Query )in a dictionary.
     input:
         - Dict: dictionary.
             dictionary to look up the query. Notice that this must be a special dictionary with
             the keys: 'isotopes', 'elements', 'compounds', and 'samples', and then their contents, either
             dictionaries or lists. This is because the criteria to look this up is different in each case.
-        - tuplein: results from Query().
+        - tuplein: results from Query(), namely (input, mode), where mode is either 'n-tot' or 'n-g'.
     output: a list of every item matching in the dictioanry matching the criteria."""
-    if not isinstance(tuplein,tuple): return None
-    if len(tuplein) != 2: return None
+
+    
+    assert isinstance(tuplein,tuple), 'tuplein argument must be tuple'
+    assert len(tuplein) == 2, 'len(tuplein) must be 2'
+    
     inp, qm = tuplein
-    if inp is None or qm is None: return None
+    assert inp is not None, 'tuplein must not contain None'
+    assert qm is not None, 'tuplein must not contain None'
+    
     outp = []
     
     for isot in inp.replace(' ','').split(','):
@@ -71,7 +77,7 @@ def Seek(Dict, tuplein):
             #Below, by 'bit' we understand either atomic number, symbol, mass number or mode.
             #if the current page is not in compounds or samples, we require every query-bit of information the user gave to be the same.
             if not isot in dict(Dict.get('compounds'), **Dict.get('samples')):
-                z,e,n,m = InterpretName(isot)
+                z,e,n,m = basics.InterpretName(isot)
                 #if the user didn't give the information, both the query-bit and the dictionary-bit are set to 0 or to ''.
                 if qz in ['','0']:
                     qz='0'
