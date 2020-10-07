@@ -10,6 +10,7 @@ def psave(self):
     Method that saves the pickle representation of the catalog class to the cwd.
     input:
         - self: catalog instance"""
+    assert cf.use_pickle, "Pickle isn't activated"
     import pickle
     with open('spcat.pickle', 'wb') as f:
         pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
@@ -19,6 +20,7 @@ def pload():
     """Function that loades the pickle representation of the catalog class from the cwd.
     output:
         - class"""
+    assert cf.use_pickle, "Pickle isn't activated"
     import pickle
     with open('spcat.pickle', 'rb') as f:
         data = pickle.load(f)

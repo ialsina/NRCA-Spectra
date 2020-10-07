@@ -881,8 +881,7 @@ class Sample(Substance):
 class Peak:
     kind = 'peak'
     def __init__(self,info):
-        if len(info) != peakattr.size:
-            raise Exception('info tuple must have the same lenght as peakattr.',len(info),peakattr.size)
+        assert len(info) == peakattr.size, 'info tuple must have the same lenght as peakattr, but' + len(info) +' / '+ peakattr.size
         for i in range(peakattr.size):
             setattr(self,peakattr.get(i),info[i])
 

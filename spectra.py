@@ -41,7 +41,7 @@ if not isd('output'):
 
 #If 'spcat.pickle' pickle exists, ask.
 #Either load it or create the insntace
-if isfx('spcat.pickle'):
+if isfx('spcat.pickle')
     inp = input('Load catalog from file? ([y]/n) >')
     if not inp in ['n','no','q','quit']:
         spcat = pload()

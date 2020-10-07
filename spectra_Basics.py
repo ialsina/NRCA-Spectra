@@ -71,7 +71,7 @@ def IndMaxima(arr,s=1):
 def AskAxis():
     return True if input('x-axis: (1 eV; [2] ToF) >').lower() in ['1','ev'] else False
 def AskLim():
-    return True if not input('Show detection limits? ([y]/n) >').lower() in ['n','no'] else False
+    return True if input('Show detection limits? ([y]/n) >').lower() not in ['n','no'] else False
 
 def GetIndex(arr,elements,single_as_int=True):
     """Given an array and an element of it, gives back the index array where the element is found.

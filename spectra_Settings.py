@@ -7,7 +7,7 @@ parameters = {
 
     #Pickle allows to save and load classes easily and quicly.
     #Set to False only if not installed or supported, but some functionalities might be compromised.
-    'use_pickle'    :   1,
+    'use_pickle'    :   True,
 
     #Ask mode (n-tot, n-g) when looking for isotopes in the finder.
     'ask_mode'      :   False,
