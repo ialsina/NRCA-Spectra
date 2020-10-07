@@ -23,7 +23,7 @@ import numpy as np
 import scipy.integrate as spint#
 import matplotlib.pyplot as plt
 
-from spectra_Basics import *
+from spectra_Basics import isd, isf, isfx
 from spectra_Objects import Catalog
 from spectra_InitSettings import cf, err
 from spectra_FileHandlers import pload
@@ -37,7 +37,7 @@ if not isd('data'):
     sys.exit()
 
 if not isd('output'):
-    os.mkdir(os.path.join(path,'output'))
+    os.mkdir(os.path.join(os.path,'output'))
 
 #If 'spcat.pickle' pickle exists, ask.
 #Either load it or create the insntace

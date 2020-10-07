@@ -219,7 +219,7 @@ class Substance:
         self.fullname = namestr
         self.npeaks = np.shape(self.ma)[1]
         self.der = np.array([(array[1,i+1]-array[1,i])/(array[0,i+1]-array[0,i]) for i in range(np.shape(array)[1]-1)])
-        i0 = func.GetIndex(np.int32(self.der<0),0)
+        i0 = basic.GetIndex(np.int32(self.der<0),0)
         target = np.hstack((np.ones((i0)),np.zeros((np.size(self.der)-i0))))
         self.der = self.der*(np.int64(np.abs(self.der)<cf.maxleftslope)*target + (1-target))
         self.sder = func.Smooth(self.der,cf.itersmooth)

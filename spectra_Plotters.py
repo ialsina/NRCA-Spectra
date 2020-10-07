@@ -188,7 +188,7 @@ def plotone(self,num,side=None,title=None,prplot=cf.prplot,ax=None):
             ax.axvline(x=edge,color=color_dict[reason],lw=0.5)
     else:
         ax.axvline(x=self.ma[0,num],color='red',lw=0.5)
-    plt.text(.95,.5,'{}-{}'.format(self.peaks[num].peakreason[0],self.peaks[num].peakreason[1]),fontsize=8,ha='right',va='center',transform=ax.transAxes)
+    #plt.text(.95,.5,'{}-{}'.format(self.peaks[num].peakreason[0],self.peaks[num].peakreason[1]),fontsize=8,ha='right',va='center',transform=ax.transAxes)
     #ax.set_xlabel('Energy (eV)')
     #ax.set_ylabel('Cross section (b)')
     return ax

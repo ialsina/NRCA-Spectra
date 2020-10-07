@@ -265,7 +265,7 @@ def propsisot(self,params,setx=dict()):
         - params: dictionary with needed settings.
         - setx:
             dictionary of peak position ranks as keys and tuples with bounds as values.
-            Used when editing peaks. For the peaks that have a value already set, it is
+            Used only when editing peaks. For the peaks that have a value already set, it is
             passed to computepeak()
     outputs:
         - sorted dictionary of peaks."""
