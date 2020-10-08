@@ -17,9 +17,9 @@ import numpy as np
 import scipy.integrate as spint
 import matplotlib.pyplot as plt
 
-import spectra_Basics as basic
-import spectra_Finders as finder
-from spectra_InitSettings import cf
+from . import spectra_Basics as basic
+from . import spectra_Finders as finder
+from .spectra_InitSettings import cf
 
 
 def Plotter(data,tit='',showlim=0,showma=0,tof=False,axlabsin=False,peaklabs=False,vlines=None,ax=None,**kwargs):

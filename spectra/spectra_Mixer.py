@@ -9,8 +9,8 @@ import numpy as np
 import scipy.integrate as spint
 import matplotlib.pyplot as plt
 
-import spectra_Basics as basic
-from spectra_InitSettings import cf, err
+from . import spectra_Basics as basic
+from .spectra_InitSettings import cf, err
 
 def Interpolate(arrayin,value):
     """Function that locates the value between to elements in an array and returns the linear interpolation."""

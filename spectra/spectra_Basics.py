@@ -9,7 +9,7 @@ import numpy as np
 import scipy.integrate as spint
 import matplotlib.pyplot as plt
 
-from spectra_InitSettings import cf,err
+from .spectra_InitSettings import cf,err
 
 # HANDY VARIABLES
 path = os.getcwd()

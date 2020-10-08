@@ -23,10 +23,10 @@ import numpy as np
 import scipy.integrate as spint#
 import matplotlib.pyplot as plt
 
-from spectra_Basics import isd, isf, isfx
-from spectra_Objects import Catalog
-from spectra_InitSettings import cf, err
-from spectra_FileHandlers import pload
+from .spectra_Basics import isd, isf, isfx
+from .spectra_Objects import Catalog
+from .spectra_InitSettings import cf, err
+from .spectra_FileHandlers import pload
 
 #This allows plots to be detached from the command line.
 plt.ion()

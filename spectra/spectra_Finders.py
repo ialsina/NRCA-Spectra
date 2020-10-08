@@ -1,6 +1,6 @@
 import numpy as np
-import spectra_Basics as basics
-from spectra_InitSettings import cf, err
+from . import spectra_Basics as basics
+from .spectra_InitSettings import cf, err
 
 def Query(askmode=cf.ask_mode):
     """Basically, asks the user what to look up.

@@ -9,11 +9,11 @@ import numpy as np
 import scipy.integrate as spint
 import matplotlib.pyplot as plt
 
-import spectra_Basics as basic
-import spectra_Plotters as plotter
-import spectra_Finders as finder
-import spectra_ObjectsFunc as func
-from spectra_InitSettings import cf, peakattr, err
+from . import spectra_Basics as basic
+from . import spectra_Plotters as plotter
+from . import spectra_Finders as finder
+from . import spectra_ObjectsFunc as func
+from .spectra_InitSettings import cf, peakattr, err
 
 
 class Catalog:

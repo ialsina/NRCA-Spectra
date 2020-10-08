@@ -10,10 +10,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.integrate as spint
 
-import spectra_Basics as basic
-import spectra_Plotters as plotter
-import spectra_Finders as finder
-from spectra_InitSettings import cf, peakattr, err
+from . import spectra_Basics as basic
+from . import spectra_Plotters as plotter
+from . import spectra_Finders as finder
+from .spectra_InitSettings import cf, peakattr, err
 
 def definepeak(self,npeak,prange,params):
     """Given an Data instance, defines the npeak-th peak in x position.

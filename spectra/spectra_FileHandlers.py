@@ -6,10 +6,10 @@ import time
 import shutil
 import numpy as np
 
-import spectra_Basics as basics
-import spectra_Finders as finder
-import spectra_Mixer as mixer
-from spectra_InitSettings import cf, peakattr, err
+from . import spectra_Basics as basics
+from . import spectra_Finders as finder
+from . import spectra_Mixer as mixer
+from .spectra_InitSettings import cf, peakattr, err
 
 #Notice: some of the functions presented in this file are actually methods of classes presented in spectra_Objects.
 

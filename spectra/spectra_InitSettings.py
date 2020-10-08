@@ -1,4 +1,4 @@
-from spectra_Settings import parameters
+from .settings.conf import parameters
 
 class Settings:
     def __init__(self,params):
