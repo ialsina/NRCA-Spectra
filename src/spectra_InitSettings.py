@@ -47,7 +47,16 @@ class Settings:
 
 
     def pack(self,**kwargs):
-        return {attr: kwargs.get(attr, getattr(self,attr)) for attr in self.__dict__}
+        """Takes arguments. Then, runs through the attributes of the class.
+        For every attribute, if there is an argument with the same name, return the argument.
+        Otherwise, return the attribute.
+        """
+        outp = {attr: kwargs.get(attr, getattr(self,attr)) for attr in self.__dict__}
+        
+        # If crs_min is passed, it is to be used as an exception. Therefore, remove usual exceptions.
+        if 'crs_min' in kwargs: del outp['crs_exc']
+        
+        return outp
 
 
 

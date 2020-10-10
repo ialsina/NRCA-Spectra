@@ -256,11 +256,11 @@ class Substance:
     pick = func.pick
 
 class Data(Substance):
-    def __init__(self,namestr,array,peaksdict=None):
+    def __init__(self,namestr,array,peaksdict=None,specific_settings=dict()):
         self.atom, self.symb, self.mass, self.mode = basic.InterpretName(namestr)
         self.intof = False
         self.xbounds = cf.xbounds()
-        self.ybounds = cf.ybounds(self.symb, self.mode)
+        self.ybounds = specific_settings.get('crs_min') or cf.ybounds(self.symb, self.mode)
         self.spectrum = array
         self.spectrum_tof = self.arr_E2t(self.spectrum)
         self.xmagnitude = 'Energy (eV)'
@@ -268,7 +268,7 @@ class Data(Substance):
         self.ma, self.mai = func.maxima(array, self.xbounds, self.ybounds, 0)
         self.ma_tof = self.arr_E2t(self.ma)
         super().__init__(namestr,array)
-        self.peaks = peaksdict or func.propsisot(self, cf.pack())
+        self.peaks = peaksdict or func.propsisot(self, cf.pack(**specific_settings))
         self._seterrors()
         
     def _seterrors(self):
@@ -315,33 +315,33 @@ class Data(Substance):
 
 
 class Mix(Data):
-    def __init__(self,namestr,array,abund,peaksdict=None):
-        super().__init__(namestr,array,peaksdict)
+    def __init__(self,namestr,array,abund,peaksdict=None, specific_settings=dict()):
+        super().__init__(namestr,array,peaksdict, specific_settings)
         self.abundances = abund
         self.components = list(abund.keys())
 
     def recompute(self,**kwargs):
-        self.__init__(self.fullname, self.spectrum, self.abundances, None)
+        self.__init__(self.fullname, self.spectrum, self.abundances, None, kwargs)
         #self.peaks = propsisot(self, cf.pack(**kwargs))
         #self.err = [self.peaks[i] for i in self.peaks if self.peaks[i].xlims == (0.,0.)]
 
 class Element(Mix):
     kind = 'element'
-    def __init__(self,namestr,array,abund,peaksdict=None):
-        super().__init__(namestr,array,abund,peaksdict)
+    def __init__(self,namestr,array,abund,peaksdict=None, specific_settings=dict()):
+        super().__init__(namestr,array,abund,peaksdict, specific_settings)
 
 class Compound(Mix):
     kind = 'compound'
-    def __init__(self,namestr,array,abund,peaksdict=None):
-        super().__init__(namestr,array,abund,peaksdict)
+    def __init__(self,namestr,array,abund,peaksdict=None, specific_settings=dict()):
+        super().__init__(namestr,array,abund,peaksdict, specific_settings)
     
 class Isotope(Data):
     kind = 'isotope'
-    def __init__(self,namestr,array,peaksdict=None):
-        super().__init__(namestr,array,peaksdict)
+    def __init__(self,namestr,array,peaksdict=None, specific_settings=dict()):
+        super().__init__(namestr,array,peaksdict,specific_settings)
 
     def recompute(self,**kwargs):
-        self.__init__(self.fullname, self.spectrum, None)
+        self.__init__(self.fullname, self.spectrum, None, kwargs)
         #self.peaks = propsisot(self, cf.pack(**kwargs))
         #self.err = [self.peaks[i] for i in self.peaks if self.peaks[i].xlims == (0.,0.)]
 
