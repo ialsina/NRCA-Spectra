@@ -223,7 +223,7 @@ class Substance:
         i0 = basic.GetIndex(np.int32(self.der<0),0)
         target = np.hstack((np.ones((i0)),np.zeros((np.size(self.der)-i0))))
         self.der = self.der*(np.int64(np.abs(self.der)<cf.maxleftslope)*target + (1-target))
-        self.sder = func.Smooth(self.der,cf.itersmooth)
+        self.sder = basic.Smooth(self.der,cf.itersmooth)
         self.date_created = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         
     def plot(self,showlim=True,showma=True,tof=None,peaklabs=True):
