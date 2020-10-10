@@ -6,4 +6,4 @@ Created on Thu Oct  8 20:48:51 2020
 @author: ivan
 """
 
-from . import spectra_Load
+from .src import spectra_Load
