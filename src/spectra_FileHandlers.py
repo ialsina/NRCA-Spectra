@@ -308,13 +308,13 @@ def ImportSamp(directory=None):
     elif inp in ['q','quit']:
         return dict()
 
-    sampcount, igncount= 0, 0
     for mode in ['n-tot', 'n-g']:
+        sampcount, igncount= 0, 0
+        directory = paths.path('samples_{}'.format(mode))
         print('Importing {} sample files into database'.format(mode))
         if naming: print('Type in the sample names. [] will name them as the filename and [-] will omit the import')
         time.sleep(0.5)
-        folder = 'samples_' + mode
-        directory = os.path.join(os.getcwd(), folder)
+        
         filelist = os.listdir(directory)
         for file in tqdm(filelist, disable=naming, leave=False):
             filename = os.fsdecode(file)

@@ -31,9 +31,6 @@ from .spectra_FileHandlers import pload
 #This allows plots to be detached from the command line.
 plt.ion()
 
-print(isd('data'))
-print(os.path.isdir(os.path.join(os.path.curdir, 'data')))
-
 #Required directories:
 
 
