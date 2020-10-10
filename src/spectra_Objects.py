@@ -259,7 +259,20 @@ class Data(Substance):
     def __init__(self,namestr,array,peaksdict=None,specific_settings=dict()):
         self.atom, self.symb, self.mass, self.mode = basic.InterpretName(namestr)
         self.intof = False
-        self.xbounds = cf.xbounds()
+        
+        if specific_settings.get('tof') is not None:
+            assert isinstance(specific_settings.get('tof'), tuple), 'tof argument must be tuple'
+            assert len(specific_settings.get('tof')) == 2, 'tof argument must have size 2'
+            tof = specific_settings.get('tof')
+            self.xbounds = (cf.t2E(tof[1]), cf.t2E(tof[0]))
+            print('Note: Parameter tof converted to energy')
+        elif specific_settings.get('e') is not None:
+            assert isinstance(specific_settings.get('e'), tuple), 'tof argument must be tuple'
+            assert len(specific_settings.get('tof')) == 2, 'tof argument must have size 2'    
+            self.xbounds = specific_settings.get('e')
+        else:            
+            self.xbounds = cf.xbounds()
+        
         self.ybounds = specific_settings.get('crs_min') or cf.ybounds(self.symb, self.mode)
         self.spectrum = array
         self.spectrum_tof = self.arr_E2t(self.spectrum)

@@ -33,7 +33,7 @@ class Settings:
     def dE2dt(self,dE,E,mode=None):
         return 0.5*self.L0(mode)*1E6*(0.5*self.mn/self.e)**0.5*E**(-1.5)*dE
 
-    def xbounds(self,tof=False):
+    def xbounds(self, tof=False):
         return (self.tof_min, self.tof_max) if tof else (self.e_min, self.e_max)
 
     def ybounds(self,symb,mode='n-tot'):
