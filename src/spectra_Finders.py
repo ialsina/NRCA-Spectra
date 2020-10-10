@@ -33,7 +33,8 @@ def Seek(Dict, tuplein):
             dictionaries or lists. This is because the criteria to look this up is different in each case.
         - tuplein: results from Query(), namely (input, mode), where mode is either 'n-tot' or 'n-g'.
     output: a list of every item matching in the dictioanry matching the criteria."""
-
+    
+    if tuplein is None: return None
     
     assert isinstance(tuplein,tuple), 'tuplein argument must be tuple'
     assert len(tuplein) == 2, 'len(tuplein) must be 2'

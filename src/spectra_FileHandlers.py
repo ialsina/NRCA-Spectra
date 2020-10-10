@@ -16,6 +16,10 @@ file_peaks_human = 'PeakProperties.txt'
 file_peaks_nonhuman = 'peakprops.txt'
 file_pickle = 'spcat.pickle'
 
+ans_yes = ['yes', 'Yes', 'y', 'Y', 'YES', 1, '1']
+ans_no = ['no', 'No', 'n', 'N', 'NO', 0, '0']
+ans_quit = ['quit', 'Quit', 'q', 'Q', 'esc', 'Esc', 'ESC', 'QUIT', 'x']
+
 def psave(self):
     """This is a method.
     Method that saves the pickle representation of the catalog class to the cwd.
@@ -222,9 +226,9 @@ def ImportData(directory=None):
     
     if paths.isfx(file_peaks_nonhuman, 'load'):
         inp = input('Import peak properties from file? ([y]/n) >')
-        if inp in ['q','quit']:
+        if inp in ans_quit:
             return dict(),dict(),dict()
-        elif not inp in ['n','no']:
+        elif not inp in ans_no:
             propsdict = LoadPeaks(path_peaks)
         else:
             propsdict = dict()
@@ -274,7 +278,7 @@ def ImportData(directory=None):
 
     return isotdict, elemdict, compdict
 
-def ImportSamp(directory=None):
+def ImportSamp(skipping=-1, skip_list=None):
     """Imports every file in the specified directory. Intended to be used for the Sample files.
     It creates the actual Sample instances on the fly.
     It works in a very similar way than ImportData (see docstrings on that function). Differences are:
@@ -284,8 +288,10 @@ def ImportSamp(directory=None):
         - There is no propsdict here.
         - There is no abundances handling here.
     input:
-        - directory: str
-            directory path. If unspecified (recomended), imports 'data' file.
+        - skipping: -1: user is asked to determine where or not to skip files
+                     0: not skipping
+                     1: skipping files from skip_list
+        - skip_list: list of files that will be ignored
     output:
         - sampdict: dictionary of Samples"""
     from .spectra_Objects import Sample
@@ -300,16 +306,27 @@ def ImportSamp(directory=None):
         return dict()
 
     print('We are about to load samples spectra.')
+    
+    if skip_list is None or skip_list == []:
+        skipping = 0
+    else:
+        if skipping == -1:
+            skipping = int(input('Skip existing samples? ([y]/n) >') not in ans_no)
+    
+    assert skipping in [0, 1], 'Bad skipping value'
 
     naming = False
     inp = input('Name manually? (y/[n]) >')
-    if inp in ['y','yes']:
+    if inp in ans_yes:
         naming = True
-    elif inp in ['q','quit']:
+    elif inp in ans_quit:
         return dict()
+    
+    tot_sampcount, tot_igncount, tot_oldcount = 0, 0, 0
 
     for mode in ['n-tot', 'n-g']:
-        sampcount, igncount= 0, 0
+        sampcount, igncount, oldcount = 0, 0, 0
+        
         directory = paths.path('samples_{}'.format(mode))
         print('Importing {} sample files into database'.format(mode))
         if naming: print('Type in the sample names. [] will name them as the filename and [-] will omit the import')
@@ -325,13 +342,17 @@ def ImportSamp(directory=None):
             if filename.endswith(".asm") or filename.endswith(".py"):
                 # Weird files? No thanks!
                 continue
+            if skipping and filename in skip_list:
+                # Old file
+                oldcount+=1
+                continue
             else:
                 arrout = ImportFile(os.path.join(directory,filename), False)[0]
                 # SAMPLE DATAFILE
                 if not arrout is None:
                     if naming:
                         name = input('{}/{}: {} >'.format(sampcount+igncount+1, len(filelist), filename))
-                        if name in ['q','quit']:
+                        if name in ans_quit:
                             return dict()
                         elif name in ['','=']:
                             name = filename.split('.')[0]
@@ -339,11 +360,17 @@ def ImportSamp(directory=None):
                             continue
                     else:
                         name = filename.split('.')[0]
-                    sampdict[name] = Sample(name, arrout, mode)
+                    sampdict[name] = Sample(name, arrout, mode, filename)
                     sampcount+=1
                 continue
-    print(sampcount,'sample files imported.')
-    if igncount>0: print(igncount,'empty files ignored.')
+        
+        tot_sampcount += sampcount
+        tot_igncount += igncount
+        tot_oldcount += oldcount
+        
+    print(tot_sampcount,'sample files imported.')
+    if tot_igncount>0: print(tot_igncount,'empty files ignored.')
+    if tot_oldcount>0: print(tot_oldcount, 'old files ignored.')
     return dict(sampdict)
 
 
@@ -473,7 +500,7 @@ def MixInFile(filepath, Dict, permitted, kind=None):
         return dict()
     else:
         if not input('Importing\n"'+filepath+'"\nContinue?\n'\
-                     'Note: this is likely to take a while. ([y]/n) >') in ['y','yes','']: return dict()
+                     'Note: this is likely to take a while. ([y]/n) >') not in ans_no: return dict()
     
     mixels = []
     mixname = ""

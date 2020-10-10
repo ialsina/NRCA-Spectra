@@ -144,7 +144,7 @@ class Catalog:
 
     def sample_in(self):
         from .spectra_FileHandlers import ImportSamp
-        self.update(samples=ImportSamp())
+        self.update(samples=ImportSamp(skipping=-1, skip_list=  self.sample_files()))
 
     def mix_out(self):
         from .spectra_FileHandlers import MixOut
@@ -170,6 +170,12 @@ class Catalog:
     def plotbars(self):
         samp, Dict = self.smart_select()
         plotter.PlotBars(samp,Dict)
+    
+    def sample_files(self):
+        outp = []
+        for samp in list(self.Samples().values()):
+            outp.append(samp.filename)
+        return outp
 
     plot = plotter.Plot
     pmatch = func.MatchPeaks
@@ -341,7 +347,8 @@ class Isotope(Data):
 
 class Sample(Substance):
     kind = 'sample'
-    def __init__(self,namestr,arrayin,mode=None):
+    def __init__(self,namestr,arrayin,mode=None,filename=""):
+        self.filename = filename
         self.intof = True
         self.xbounds = None
         self.ybounds = None
