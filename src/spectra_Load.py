@@ -25,23 +25,29 @@ import matplotlib.pyplot as plt
 
 from .spectra_Basics import isd, isf, isfx
 from .spectra_Objects import Catalog
-from .spectra_InitSettings import cf, err
+from .spectra_InitSettings import cf, err, paths
 from .spectra_FileHandlers import pload
 
 #This allows plots to be detached from the command line.
 plt.ion()
 
+print(isd('data'))
+print(os.path.isdir(os.path.join(os.path.curdir, 'data')))
+
 #Required directories:
-if not isd('data'):
-    print('Folder "data" needs to exist!')
-    sys.exit()
+
+
+assert isd('data'), 'Missing directory: {}'.format(paths.data)
 
 if not isd('output'):
-    os.mkdir(os.path.join(os.path,'output'))
+    os.mkdir(paths.output)
+
+if not isd('load'):
+    os.mkdir(paths.load)
 
 #If 'spcat.pickle' pickle exists, ask.
 #Either load it or create the insntace
-if isfx('spcat.pickle'):
+if isfx('spcat.pickle', 'load'):
     inp = input('Load catalog from file? ([y]/n) >')
     if not inp in ['n','no','q','quit']:
         spcat = pload()

@@ -1,5 +1,4 @@
 import os
-import sys
 from tqdm import tqdm
 from datetime import datetime
 import time
@@ -9,9 +8,13 @@ import numpy as np
 from . import spectra_Basics as basics
 from . import spectra_Finders as finder
 from . import spectra_Mixer as mixer
-from .spectra_InitSettings import cf, peakattr, err
+from .spectra_InitSettings import cf, peakattr, err, paths
 
 #Notice: some of the functions presented in this file are actually methods of classes presented in spectra_Objects.
+
+file_peaks_human = 'PeakProperties.txt'
+file_peaks_nonhuman = 'peakprops.txt'
+file_pickle = 'spcat.pickle'
 
 def psave(self):
     """This is a method.
@@ -20,7 +23,7 @@ def psave(self):
         - self: catalog instance"""
     assert cf.use_pickle, "Pickle isn't activated"
     import pickle
-    with open('spcat.pickle', 'wb') as f:
+    with open(paths.join('load', file_pickle), 'wb') as f:
         pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
     return None
 
@@ -30,7 +33,7 @@ def pload():
         - class"""
     assert cf.use_pickle, "Pickle isn't activated"
     import pickle
-    with open('spcat.pickle', 'rb') as f:
+    with open(paths.join('load', file_pickle), 'rb') as f:
         data = pickle.load(f)
     print('Catalog imported.\nDate of creation: {}\nDate of last modification: {}'.\
         format(data.date_created, data.date_modified))
@@ -214,12 +217,15 @@ def ImportData(directory=None):
     isotdict = dict()
     elemdict = dict()
     compdict = dict()
-    if basics.isf('peakprops'):
+    
+    path_peaks = paths.join('load', file_peaks_nonhuman)
+    
+    if paths.isfx(file_peaks_nonhuman, 'load'):
         inp = input('Import peak properties from file? ([y]/n) >')
         if inp in ['q','quit']:
             return dict(),dict(),dict()
         elif not inp in ['n','no']:
-            propsdict = LoadPeaks()
+            propsdict = LoadPeaks(path_peaks)
         else:
             propsdict = dict()
     else:
@@ -229,12 +235,14 @@ def ImportData(directory=None):
         print('Computing peak properties.')
     else:
         print('Importing files into database.')
+        
     time.sleep(0.5)
+    
     isotcount, elemcount, allycount, igncount= 0, 0, 0, 0
-    if directory is None: directory = os.path.join(os.getcwd(), 'data')
+    if directory is None: directory = paths.data
     for file in tqdm(os.listdir(directory), leave=False):
         filename = os.fsdecode(file)
-        if not os.path.getsize(directory+'/'+filename) > 0:
+        if not os.path.getsize(os.path.join(directory, filename)) > 0:
             # EMPTY FILE, ignore
             igncount+=1
             continue
@@ -283,11 +291,11 @@ def ImportSamp(directory=None):
     from spectra_Objects import Sample
 
     sampdict = dict()
-    if not basics.isd('samples_n-tot'):
+    if not paths.isd('samples_n-tot'):
         print('samples_n-tot folder does not exist!')
         return dict()
 
-    if not basics.isd('samples_n-g'):
+    if not paths.isd('samples_n-g'):
         print('samples_n-g folder does not exist!')
         return dict()
 
@@ -339,17 +347,15 @@ def ImportSamp(directory=None):
     return dict(sampdict)
 
 
-def LoadPeaks():
+def LoadPeaks(filepath):
     """Reads the peakprops.txt file to return a big dictionary with all of peak properties stored in there.
     output:
         - THE dictionary of peaks."""
     from spectra_Objects import Peak
 
     peaks = dict()
-    if not basics.isf('peakprops'):
-        print('peakprops.txt must exist')
-        return None
-    with open('peakprops.txt','r') as iFile:
+    
+    with open(filepath,'r') as iFile:
         curIsot = ''
         lines = iFile.readlines()
         for line in lines:
@@ -378,20 +384,20 @@ def LoadPeaks():
 
 def CreateEmptyFiles():
     """Creates all the empty files to be filled from Kaeri (for example) after the file 'Isotopes.txt'"""
-    if basics.isf('Isotopes'):
+    if paths.isfx('Isotopes.txt'):
         try:
-            if basics.isd('EmptyFiles'): shutil.rmtree(basics.path+'/EmptyFiles')
-            os.mkdir(basics.path+'/EmptyFiles')
+            if paths.isd('empty_files'): shutil.rmtree(paths.path('empty_files'))
+            os.mkdir(paths.path('empty_files'))
         except Exception as e:
             print('Error in output file creation:',e)
-            sys.exit()
+            raise RuntimeError
         
-        with open('Isotopes.txt','r') as iFile:
+        with open(paths.join(None, 'Isotopes.txt'),'r') as iFile:
             for line in iFile.readlines():
                 line = line.replace('\n','')
                 print(line)
                 for suff in ['_n-tot','_n-g']:
-                    f = open(basics.path+'/EmptyFiles/'+line+suff+'.txt','w')
+                    f = open(paths.join('EmptyFiles', line+suff+'.txt','w'))
                     f.close()
     else:
         print('There must be an Isotopes file')
@@ -417,7 +423,7 @@ def MixOut(Dict, container_in):
     
     isots, ielems, elems, non_unique, comps = container_in
 
-    with open('Natural_out.txt','w') as oFile:
+    with open(paths.join('input', 'Natural_out.txt'),'w') as oFile:
         oFile.write('# NATURAL ABUNDANCES'+'\n'+instructions)
         oFile.write('#'*70+'\n\n')
         for elem in ielems:
@@ -433,7 +439,7 @@ def MixOut(Dict, container_in):
     print('Natural_out.txt file exported.')
 
 
-    with open('Compound_out.txt','w') as oFile:
+    with open(paths.join('input', 'Compound_out.txt'),'w') as oFile:
         oFile.write('# COMPONENT PROPORTION IN COMPOUNDS'+'\n'+instructions)
 
         oFile.write('#'*70+'\n\n')
@@ -453,18 +459,20 @@ def MixOut(Dict, container_in):
 
     
     print('Compound_out.txt file exported.')
-    
-def MixInFile(filename, Dict, permitted, kind=None):
+
+
+
+def MixInFile(filepath, Dict, permitted, kind=None):
     """Reads a single file, either Natural_in, or Compounds_in."""
     from spectra_Objects import Isotope, Element, Compound
     dictout = dict()
     dictcomp = dict()
-    
-    if not basics.isf(filename):
+        
+    if not os.path.isfile(filepath):
         print('File does not exist')
         return dict()
     else:
-        if not input('Importing '+filename+'. Continue?\n'\
+        if not input('Importing\n"'+filepath+'"\nContinue?\n'\
                      'Note: this is likely to take a while. ([y]/n) >') in ['y','yes','']: return dict()
     
     mixels = []
@@ -476,7 +484,7 @@ def MixInFile(filename, Dict, permitted, kind=None):
     assert kind in ['compound', 'element'], "Bad value for the 'kind' argument"
     obj = Compound if kind=='compound' else Element
 
-    with open(filename,'r') as iFile:
+    with open(filepath,'r') as iFile:
         for line in iFile.readlines():
             if line[0] in ["#",">"]: continue
             line = line.replace('=','').replace('\n','')
@@ -526,24 +534,36 @@ def MixInFile(filename, Dict, permitted, kind=None):
             ExportWeighted(dictout[mix+suff])
             count+=1
     
-    os.rename(filename,filename.split('_')[0]+'_through.txt')
-    print(filename, 'file imported.')
+    #os.rename(filename,filename.split('_')[0]+'_through.txt')
+    os.rename(filepath,filepath.replace('_in.txt', '_.txt'))
+    print('File imported.')
     print(count, kind+'(s) computed and exported.')
     
     return dictout
+
 
 def MixIn(Dict,permitted):
     """Makes the function MixInFile work for Elements and Compounds.
     If the respective files are there and ready, it returns a dictionary with them all computed.
     If not, it returns an empty dictionary."""
-    dictelements = MixInFile('Natural_in',Dict,permitted, 'element') if basics.isf('Natural_in') else dict()
-    dictcompounds = MixInFile('Compound_in',Dict,permitted, 'compound') if basics.isf('Compound_in') else dict()
+    
+    if paths.isfx('Natural_in.txt', 'input'):
+        dictelements = MixInFile(paths.join('input', 'Natural_in.txt'))
+    else:
+        dictelements = dict()
+    
+    if paths.isfx('Compound_in.txt', 'input'):
+        dictcompounds = MixInFile(paths.join('input', 'Compound_in.txt'))
+    else:
+        dictcompounds = dict()
+        
     return dictelements, dictcompounds
 
-def ExportWeighted(*args,directory=None):
-    if directory is None: directory = os.getcwd() + '/data/'
+
+def ExportWeighted(*args, directory=None):
+    if directory is None: directory = paths.data
     for el in args:
-        with open(directory+el.kind+'_'+el.fullname+'.txt','w') as oFile:
+        with open(paths.join(directory, el.kind+'_'+el.fullname+'.txt'),'w') as oFile:
             oFile.write(el.fullname+'\n')
             for comp in el.abundances:
                 oFile.write('>{:>10s}:{:<8.6f}\n'.format(comp, float(el.abundances[comp])))
@@ -551,21 +571,6 @@ def ExportWeighted(*args,directory=None):
                 oFile.write('{:12.6e} {:14.8e}\n'.format(xx,yy))
 
 
-def ExportProps2(Dict):
-    """Given a Data dictionary, exports a comprehensive non-human-readable file of ugly values."""
-    with open('peakprops.txt','w') as oFile:
-        oFile.write('# ISOTOPE PEAK PROPERTIES FILE\n')
-        oFile.write('>TOF:{},{};E:{},{};b:{};L0:{},{}'.format(cf.tof_min,cf.tof_max,cf.e_min,cf.e_max,cf.crs_min,cf.L0_t,cf.L0_g)+'\n')
-        oFile.write('>Date: '+datetime.now().strftime("%d/%m/%Y %H:%M:%S")+'\n')
-        oFile.write('#'+';'.join(peakattr.getlist())+'\n')
-        for isot in sorted(Dict):
-            oFile.write(':'+Dict[isot].fullname+'\n')
-            for peak in Dict[isot].peaks:
-                oFile.write(';'.join([str(getattr(Dict[isot].peaks[peak],attrstr)) for attrstr in peakattr.getlist()])\
-                    .replace('(','').replace(')','').replace(' ','')+'\n')
-        oFile.write('::')
-        oFile.close()
-    print('peakprops.txt exported')
 
 def infoone(isot):
     """Given a Data instance, squishes all the information that goes into human-readable files out of it."""
@@ -590,7 +595,8 @@ def infoone(isot):
 
 def ExportProps(Dict):
     """Given a Data dictionary, exports a human-readable file of nice values."""
-    with open('PeakProperties.txt','w') as oFile:
+    filepath = paths.join('cwd', file_peaks_human)
+    with open(filepath,'w') as oFile:
         oFile.write('# ISOTOPE PEAK Properties\n')
         oFile.write('\n# Peaks conditioned to: ToF in [{},{}] us, L0_g = {}, L0_t = {}, C.S. > {} b'.format(cf.tof_min,cf.tof_max,cf.L0_g,cf.L0_t,cf.crs_min))
         oFile.write('\n# Which corresponds to: E in [{},{}] eV, C.S. > {} b'.format(cf.e_min,cf.e_max,cf.crs_min))
@@ -606,34 +612,25 @@ def ExportProps(Dict):
             oFile.write('\n:{:=<92}'.format(isot)+'\n')
             for line in infoone(Dict[isot]): oFile.write(line+'\n')
         oFile.close()
-    print('PeakProperties file exported')
-
-
-def BackName():
-    """Renames everything with _through in its name back to _in"""
-    if basics.isf('Natural_through'): os.rename('Natural_through.txt','Natural_in.txt')
-    if basics.isf('Compounds_through'): os.rename('Compounds_through.txt','Compounds_in.txt')
+    print('Exported: "{}"'.format(filepath))
+    
+def ExportProps2(Dict):
+    """Given a Data dictionary, exports a comprehensive non-human-readable file of ugly values."""
+    filepath = paths.join('load', file_peaks_nonhuman)
+    with open(filepath,'w') as oFile:
+        oFile.write('# ISOTOPE PEAK PROPERTIES FILE\n')
+        oFile.write('>TOF:{},{};E:{},{};b:{};L0:{},{}'.format(cf.tof_min,cf.tof_max,cf.e_min,cf.e_max,cf.crs_min,cf.L0_t,cf.L0_g)+'\n')
+        oFile.write('>Date: '+datetime.now().strftime("%d/%m/%Y %H:%M:%S")+'\n')
+        oFile.write('#'+';'.join(peakattr.getlist())+'\n')
+        for isot in sorted(Dict):
+            oFile.write(':'+Dict[isot].fullname+'\n')
+            for peak in Dict[isot].peaks:
+                oFile.write(';'.join([str(getattr(Dict[isot].peaks[peak],attrstr)) for attrstr in peakattr.getlist()])\
+                    .replace('(','').replace(')','').replace(' ','')+'\n')
+        oFile.write('::')
+        oFile.close()
+    print('Exported: "{}"'.format(filepath))
 
             
             
-# UNUSED, ALTHOUGH MIGHT BE USEFUL T SOME POINT.
-# =============================================================================
-# def BadPeaks(request=None):
-#     if os.path.isdir(path+'/widepeaks'): shutil.rmtree(path+'/widepeaks')
-#     os.mkdir(path+'/widepeaks')
-#     with open('widepeaks.txt','w') as oFile:
-#         for isot in tqdm(sorted(Properties)):
-#             badone = False
-#             for peak in Properties[isot]:
-#                 if Properties[isot][peak].get('width',0) > 900:
-#                     badone = True
-# #                    print(isot,peak,Properties[isot][peak].get('width'))
-#                     oFile.write('{}\t{}\t{}\n'.format(isot,peak,Properties[isot][peak].get('width')))
-#             if badone:
-#                 Define(isot)
-#                 PropsOne()
-#                 Plot0()
-#                 plt.savefig(path+'/widepeaks/'+isot+'.png')
-#                 plt.close()
-#         oFile.close()    
-# =============================================================================
+    

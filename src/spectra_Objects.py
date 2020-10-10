@@ -12,8 +12,9 @@ import matplotlib.pyplot as plt
 from . import spectra_Basics as basic
 from . import spectra_Plotters as plotter
 from . import spectra_Finders as finder
-from . import spectra_ObjectsFunc as func
 from .spectra_InitSettings import cf, peakattr, err
+
+from . import spectra_ObjectsFunc as func
 
 
 class Catalog:

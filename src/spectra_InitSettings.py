@@ -1,9 +1,9 @@
-from .settings.conf import parameters
-
 class Settings:
-    def __init__(self,params):
-        for param in params:
-            setattr(self,param,params[param])
+    def __init__(self):
+        from ..settings import parameters
+        for param in parameters:
+            setattr(self,param,parameters[param])
+        
         self.e_min   = self.t2E(self.thr_max,self.default_mode) if self.thr_in_tof else self.thr_min
         self.e_max   = self.t2E(self.thr_min,self.default_mode) if self.thr_in_tof else self.thr_max
         self.e_min_g = self.t2E(self.thr_max,'n-g')             if self.thr_in_tof else self.thr_min
@@ -136,7 +136,47 @@ class ErrorReporter:
                 entry = self.errdict[el]
                 print('{:>5}: {:>12} {:>4} {}'.format(el, entry['subs'], entry['peakc'], entry['excep'].args[0]))
 
+class Path:
+    def __init__(self):
+        from ..paths import paths_
+        for p in paths_:
+            setattr(self, p, paths_[p])
+    
+    def __get(self,d):
+        if hasattr(self,d):
+            return getattr(self,d) 
+        else:
+            import os
+            return os.path.join(self.cwd, d)
+    
+    def path(self, d = None):
+        if d is None:
+            return self.cwd
+        else:
+            return self.__get(d)
+    
+    def isd(self,d):
+        import os
+        #return os.path.isdir(os.path.join(path,d))
+        return os.path.isdir(self.path(d))
+    
+    def isfx(self,f,d=None):
+        import os
+        
+        return os.path.isfile(os.path.join(self.path(d),f))
+        #return os.path.isfile(getattr(self,f))
+    
+    def isf(self,f,d=None):
+        assert 0==1, 'Function was deprecated and must not be used!'
+        #return self.isfx(f+'.txt',d)
+    
+    def join(self, d, f):
+        import os
+        return os.path.join(self.path(d), f)
+    
+    
 
-cf = Settings(parameters)
+cf = Settings()
 peakattr = PeakAttributes()
 err = ErrorReporter()
+paths = Path()

@@ -9,17 +9,12 @@ import numpy as np
 import scipy.integrate as spint
 import matplotlib.pyplot as plt
 
-from .spectra_InitSettings import cf,err
-
-# HANDY VARIABLES
-path = os.getcwd()
-isd = lambda d: os.path.isdir(os.path.join(path,d))
-isfx= lambda f: os.path.isfile(os.path.join(path,f))
-isf = lambda f: isfx(f+'.txt')
+from .spectra_InitSettings import cf, err, paths
 
 
 catalog_volumes = ('isotopes','elements','compounds','samples')
 
+isd, isf, isfx = paths.isd, paths.isf, paths.isfx
 
 #Take functions defined in a tricky place for them to be used whenever
 L0, E2t, t2E, dt2dE, dE2dt = cf._funcs()
