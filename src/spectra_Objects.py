@@ -128,30 +128,30 @@ class Catalog:
         return self.Substances().get(inp, otherwise)
 
     def export(self):
-        from spectra_FileHandlers import ExportProps, ExportProps2
+        from .spectra_FileHandlers import ExportProps, ExportProps2
         ExportProps(self.Datas())
         ExportProps2(self.Datas())
 
     def save(self):
-        from spectra_FileHandlers import psave
+        from .spectra_FileHandlers import psave
         self.date_modified = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         psave(self)
 
     def data_in(self):
-        from spectra_FileHandlers import ImportData
+        from .spectra_FileHandlers import ImportData
         new_isotopes, new_elements, new_compounds = ImportData()
         self.update(isotopes=new_isotopes, elements=new_elements, compounds=new_compounds)
 
     def sample_in(self):
-        from spectra_FileHandlers import ImportSamp
+        from .spectra_FileHandlers import ImportSamp
         self.update(samples=ImportSamp())
 
     def mix_out(self):
-        from spectra_FileHandlers import MixOut
+        from .spectra_FileHandlers import MixOut
         MixOut(self.Substances(), self._unravelDatas())
 
     def mix_in(self):
-        from spectra_FileHandlers import MixIn
+        from .spectra_FileHandlers import MixIn
         new_elements, new_compounds = MixIn(self.Datas(), self.ready_to_mix())
         self.update(elements=new_elements, compounds=new_compounds)
 
@@ -269,7 +269,7 @@ class Data(Substance):
         self.errors = [self.peaks[i] for i in self.peaks if self.peaks[i].xlims == (0.,0.)]
 
     def infopeaks(self):
-        from spectra_FileHandlers import infoone
+        from .spectra_FileHandlers import infoone
         print()
         print(self.fullname, 'PEAKS:','='*56)
         print('{:>4s}  {:>10s}        {:<10s} {:>10s} {:>17s} {:>17s}\n'.\

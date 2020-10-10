@@ -212,7 +212,7 @@ def ImportData(directory=None):
         - isotdict: dictionary of Isotopes
         - elemdict: dictionary of Elements
         - compdict: dictionary of Compounds"""
-    from spectra_Objects import Isotope, Element, Compound
+    from .spectra_Objects import Isotope, Element, Compound
 
     isotdict = dict()
     elemdict = dict()
@@ -288,7 +288,7 @@ def ImportSamp(directory=None):
             directory path. If unspecified (recomended), imports 'data' file.
     output:
         - sampdict: dictionary of Samples"""
-    from spectra_Objects import Sample
+    from .spectra_Objects import Sample
 
     sampdict = dict()
     if not paths.isd('samples_n-tot'):
@@ -351,7 +351,7 @@ def LoadPeaks(filepath):
     """Reads the peakprops.txt file to return a big dictionary with all of peak properties stored in there.
     output:
         - THE dictionary of peaks."""
-    from spectra_Objects import Peak
+    from .spectra_Objects import Peak
 
     peaks = dict()
     
@@ -464,7 +464,7 @@ def MixOut(Dict, container_in):
 
 def MixInFile(filepath, Dict, permitted, kind=None):
     """Reads a single file, either Natural_in, or Compounds_in."""
-    from spectra_Objects import Isotope, Element, Compound
+    from .spectra_Objects import Isotope, Element, Compound
     dictout = dict()
     dictcomp = dict()
         

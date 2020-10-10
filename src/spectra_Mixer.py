@@ -30,7 +30,7 @@ def GetWeighted(Dict,element,suf,composition):
         - element: name of the new mix
         - suf: suffix. Should be '_n-tot' or '_n-g'
         - composition: dictionary of abundances to weight the components (cookbook)."""
-    from spectra_Objects import Isotope, Element, Compound
+    from .spectra_Objects import Isotope, Element, Compound
     components = dict()
 
     #The new mesh (x values) goes from the maximum x value amongst the first x values

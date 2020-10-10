@@ -150,7 +150,7 @@ def computepeak(self,peakpos,prange,params,setx=None):
     outputs:
         - Peak instance."""
         
-    from spectra_Objects import Peak
+    from .spectra_Objects import Peak
     
     try:
         center = self.ma[0,peakpos]
@@ -413,7 +413,7 @@ def AskPeak(firstno):
 
 
 def ComparePeaks(self):
-    from spectra_Objects import Summer
+    from .spectra_Objects import Summer
     try:
         samp, Dict = self.smart_select()
         plotter.PlotBars(samp,Dict)
