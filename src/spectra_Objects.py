@@ -319,6 +319,7 @@ class Data(Substance):
         deleting = func.DeletePeaks(self)
         if deleting != []:
             self.peaks = func.sorting({i: self.peaks[i] for i in self.peaks if not i in deleting})
+            self.npeaks = len(self.peaks)   
             self._seterrors()
             self.date_edited = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 

@@ -203,7 +203,7 @@ def plotpeaks(self,save=False,showlim=1,showma=1,peaklabs=True,**kwargs):
             False: shows the dataplot
         - the rest of the inputs are the ones documented in Plotter"""
     
-    npeaks = len(self.mai)
+    npeaks = self.npeaks
     nrows = int((npeaks-9)/4)+4 if npeaks > 8 else (2 if npeaks in [0,1,2,4] else 3)
     ncols = 4 if npeaks >=4 else (2 if npeaks == 0 else 3)
     
