@@ -1,4 +1,3 @@
 *.pickle
 __pycache__/
 *.docx
-*.pdf

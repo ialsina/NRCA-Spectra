@@ -35,7 +35,7 @@ This hierarchy (probably more relevant and understandable) has to do with the st
 
 In terms, now, of structure hierarchy, the class objects are organised as follows:
 
-<img src="doc_img/im2.png" width="500""/>
+![Class hierarchy](doc_img/im2.png)
 
 Thus, the **`Catalog`** contains a dictionary of **`Isotope`**s, another dictionary of **`Element`**s, another of **`Compound`**s and a last one of **`Sample`**s. Each **`Isotope`** contains a dictionary of **`Peak`**s, and the same applies to **`Element`**s and **`Compound`**s.
 
@@ -138,11 +138,11 @@ Once we have the pointer `iridium` to a `Substance`, we can plot it by typing:
 
 > `iridium.plot()`
 
-<img src="doc_img/ex06.png" width="500""/>
+![name](doc_img/ex06.png)
 
 And then use the toolbar of the interactive `matplotlib` window to explore the spectrum. For example, zooming in:
 
-<img src="doc_img/ex07.png" width="500""/>
+![name](doc_img/ex07.png)
 
 Another interesting option is to have an overview of all the peaks of the sample, in that case
 
@@ -150,7 +150,8 @@ Another interesting option is to have an overview of all the peaks of the sample
 
 yields
 
-<img src="doc_img/ex08.png" alt="drawing" width="500""/>
+![name](doc_img/ex08.png)
+
 
 In this window, all the peaks are shown, along with their center and their borders. It is maybe not the greatest tool to see them properly, but it enables inspection to make sure there are not any wrong detections.
 
@@ -181,7 +182,8 @@ And an interactive process starts:
 
 If we now plot the peaks again by means of `iridium.plotpeaks()`, we get:
 
-<img src="doc_img/ex11.png" alt="drawing" width="500""/>
+![name](doc_img/ex11.png)
+
 
 If a peak has been badly defined, the way to edit it is the following:
 
@@ -265,7 +267,8 @@ For example:
 
 which produces
 
-<img src="doc_img/ex16.png" alt="drawing" width="500""/>
+![name](doc_img/ex16.png)
+
 
 #### Bars
 
@@ -310,7 +313,8 @@ The steps to compare the peaks in order to find the proportions of isotopes/elem
 
     A window opens:
 
-    <img src="doc_img/ex20b.png" alt="drawing" width="500""/>
+    ![name](doc_img/ex20b.png)
+
 
     In our case, we are interested in the peaks 214 and 68:
 
