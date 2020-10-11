@@ -4,7 +4,7 @@ Last revision: October 2020.
 
 This is a program written by Ivan Alsina Ferrer (ivanalsinaferrer@gmail.com) during a summer internship at STFC (Oxfordshire, UK) on the period Jun-Aug 2019.
 
-It intends to create a database of spectra that stores information on each needed **`Isotope`**, is able to weight them to create **`Element`**s and **`Compound`**s, and stores **`Sample`** spectra from the INES instrument at STFC. It also includes some functions that help import data, weigh it, process it, and correlate it with the experimental sample outcome.
+It intends to create a database of spectra that stores information on each needed **`Isotope`**, is able to weight them to create **`Elements`** and **`Compounds`**, and stores **`Sample`** spectra from the INES instrument at STFC. It also includes some functions that help import data, weigh it, process it, and correlate it with the experimental sample outcome.
 
 ## Code overview
 
@@ -37,7 +37,7 @@ In terms, now, of structure hierarchy, the class objects are organised as follow
 
 ![Class hierarchy](doc_img/im2.png)
 
-Thus, the **`Catalog`** contains a dictionary of **`Isotope`**s, another dictionary of **`Element`**s, another of **`Compound`**s and a last one of **`Sample`**s. Each **`Isotope`** contains a dictionary of **`Peak`**s, and the same applies to **`Element`**s and **`Compound`**s.
+Thus, the **`Catalog`** contains a dictionary of **`Isotopes`**, another dictionary of **`Elements`**, another of **`Compounds`** and a last one of **`Samples`**. Each **`Isotope`** contains a dictionary of **`Peaks`**, and the same applies to **`Elements`** and **`Compounds`**.
 
 ### Creation and detection strategy
 
@@ -252,6 +252,8 @@ can be called. This creates two files into the `input/` directory named
 `Natural_out.txt` is used to create the `Element` instances, but that only needs to be done once and has already been done. `Compound_out.txt` is used to create new `Compound` instances, and can be done at any time. Enter that file, follow the instructions, change the filename to `Compound_in.txt` and run the project (alternatively, run `spcat.mix_in()`). New `Compound`s will be imported, and their spectra will be stored in the `data/` directory so that this doesn't have to be done every time.
 
 Also, when a file ending in `_in.txt` is imported, the `in` suffix disappears so that it doesn't get imported every time.
+
+*Note:* The file `Natural.txt` that exists in the root directory of the project is a reminiscence of the time where the `Elements` were created (sounds biblical). It is merely a file that contains the isotope natural abundances of the elements
 
 ### In depth
 
