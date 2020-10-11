@@ -272,13 +272,19 @@ def propsisot(self,params,setx=dict()):
     peaks_pos = {}
     for i in range(np.size(self.mai)):
         try:
+            # Number of points at the left of the current peak
             nleft = self.mai[i]
+            # Number of points at the right of the current peak
             nright = np.shape(self.spectrum)[1] - self.mai[i] - 1
+            
             if np.size(self.mai) > 1:
+                # If it's the first or last peak, take as prange the minimum between prangemax, and
+                # number of points to the left and to the right
                 if i == 0:
                     prange = min(params['prangemax'], nleft, nright)
                 elif i == np.size(self.mai)-1:
                     prange = min(params['prangemax'], nleft, nright)
+                # If it's in between, add in the minimum the number of points between the next and the previous point
                 else:
                     prange = min(params['prangemax'],self.mai[i+1]-self.mai[i-1],nleft,nright)
             elif np.size(self.mai) == 1:

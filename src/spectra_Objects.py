@@ -122,7 +122,7 @@ class Catalog:
         return outp
 
     def find(self,askmode=False,ask_if_one=False):
-        return self.Substances().get(finder.Select(self.get_as_dict(),askmode=False,recursive=False,ask_if_one=False))
+        return self.Substances().get(finder.Select(self.get_as_dict(),askmode=cf.ask_mode,recursive=False,ask_if_one=ask_if_one))
 
     def get(self,inp,otherwise=None):
         return self.Substances().get(inp, otherwise)
