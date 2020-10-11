@@ -446,7 +446,9 @@ def MixOut(Dict, container_in):
 # Only 0 to 9 digits and the above symbols should be used
 # Some examples are provided. Either leave abundances empty or delete them.
 # Change the file name to 'Compound_in.txt' and load from program
-# The file must end with a double colon (::)\n"""
+# The file must end with a double colon (::)
+# IMPORTANT! Stick to using the allowed Isotopes, Elements and Compounds as shown below.
+#   e.g. '06-C-12' instead of '6-C-12' or 'C-12'\n"""
     
     isots, ielems, elems, non_unique, comps = container_in
 
@@ -471,7 +473,7 @@ def MixOut(Dict, container_in):
 
         oFile.write('#'*70+'\n\n')
         oFile.write('\n##Example:\n#:MyCompound1\n#22-Ti:50\n#29-Cu:49.2\n#24-Cr:.8\n')
-        oFile.write('\n##Example:\n#:special_steel\n#6-C:.25\n#26-Fe-56:.75*.85\n#26-Fe-54:.75*.10\n#26-Fe-57:.75*.05\n')
+        oFile.write('\n##Example:\n#:special_steel\n#06-C:.25\n#26-Fe-56:.75*.85\n#26-Fe-54:.75*.10\n#26-Fe-57:.75*.05\n')
         oFile.write('\n#Isotopes:\n')
         for item in sorted(list(np.unique([el.split('_')[0] for el in isots]))):
             oFile.write(item+'\n')
@@ -575,12 +577,12 @@ def MixIn(Dict,permitted):
     If not, it returns an empty dictionary."""
     
     if paths.isfx('Natural_in.txt', 'input'):
-        dictelements = MixInFile(paths.join('input', 'Natural_in.txt'))
+        dictelements = MixInFile(paths.join('input', 'Natural_in.txt'), Dict, permitted, kind='element')
     else:
         dictelements = dict()
     
     if paths.isfx('Compound_in.txt', 'input'):
-        dictcompounds = MixInFile(paths.join('input', 'Compound_in.txt'))
+        dictcompounds = MixInFile(paths.join('input', 'Compound_in.txt'), Dict, permitted, kind='compound')
     else:
         dictcompounds = dict()
         
