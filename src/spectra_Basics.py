@@ -32,7 +32,8 @@ def InterpretName(name):
         - mode: should be either 'n-tot' or 'n-g'
     Warning: some tricky inputs are considered, but not comprehensively. Avoid entering strings
     that aren't in the proper format"""
-    if name.count('_') > 1 or name.count('-') > 3: return '',name,'',''
+    #if name.count('_') > 1 or name.count('-') > 3: return '',name,'',''
+    assert name.count('_') <= 1 and name.count('-') <= 3, 'only one _, only 3 -'
     iso_name = name.split('_')[0]
     mode = name.split('_')[1] if name.count('_') > 0 else ''
     znumber = iso_name.split('-')[0] if iso_name.count('-') > 0 else ''

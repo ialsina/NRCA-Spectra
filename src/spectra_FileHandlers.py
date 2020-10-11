@@ -438,7 +438,7 @@ def MixOut(Dict, container_in):
     instructions = """Instructions:
 # Insert desired abundance of isotopes after the colon (:). Spaces will be ignored.
 # A colon (:) with a character string on its left must be used to name the element/compound.
-# Allowed punctuation signs and symbols for the name are .,-+_!?[]()%&/ but nothing else.
+# Allowed punctuation signs and symbols for the name are .,+!?[]()%& but nothing else.
 # It is possible to mix and join different isotopes and/or elements together.
 # Only compounds with least two non-empty abundance entries will be considered.
 # If the abundances don't sum up to 1, they will be rescaled automatically.
