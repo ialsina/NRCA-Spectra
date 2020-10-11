@@ -18,6 +18,7 @@ paths_ = {
           'samples_n-tot':        p.join(cwd, 'samples_n-tot'),
           'samples_n-g'  :        p.join(cwd, 'samples_n-g'),
           'load'      :   p.join(cwd, 'load'),
-          'output'    :   p.join(cwd, 'iofiles'),
+          'input'     :   p.join(cwd, 'input'),
+          'output'    :   p.join(cwd, 'output'),
           'history'   :   p.join(cwd, 'history'),
          }

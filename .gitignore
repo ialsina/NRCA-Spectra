@@ -1,3 +1,5 @@
 *.pickle
 __pycache__/
+input/
+output/
 *.docx

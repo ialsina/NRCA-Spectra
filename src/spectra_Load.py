@@ -39,6 +39,9 @@ assert isd('data'), 'Missing directory: {}'.format(paths.data)
 if not isd('output'):
     os.mkdir(paths.output)
 
+if not isd('input'):
+    os.mkdir(paths.input)
+
 if not isd('load'):
     os.mkdir(paths.load)
 
